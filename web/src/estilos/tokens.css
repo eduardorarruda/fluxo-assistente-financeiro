@@ -1,0 +1,121 @@
+/*
+ * Fluxo — tokens de design.
+ *
+ * Identidade: dinheiro como corrente. Fundo quase preto azulado, violeta como
+ * marca (aceno ao Nubank), e três cores com significado fixo em todo o app:
+ *   entrada  → menta     saída → rosa     guardado → ouro
+ * Números sempre em algarismos tabulares, para colunas de valores alinharem.
+ */
+:root {
+  --fonte: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fonte-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  --raio-sm: 8px;
+  --raio: 14px;
+  --raio-lg: 22px;
+  --raio-xl: 28px;
+
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 12px;
+  --esp-4: 16px;
+  --esp-5: 20px;
+  --esp-6: 24px;
+  --esp-8: 32px;
+  --esp-10: 40px;
+
+  --t-rapida: 140ms;
+  --t-media: 240ms;
+  --t-lenta: 480ms;
+  --curva: cubic-bezier(0.22, 1, 0.36, 1);
+  --curva-mola: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --sidebar: 248px;
+  --sidebar-recolhida: 76px;
+  --topo: 68px;
+
+  /* ----- tema escuro (padrão) ----- */
+  --fundo: #07080d;
+  --fundo-2: #0b0d15;
+  --superficie: #10131d;
+  --superficie-2: #151927;
+  --superficie-3: #1c2133;
+  --borda: rgba(148, 163, 214, 0.1);
+  --borda-forte: rgba(148, 163, 214, 0.2);
+  --vidro: rgba(18, 21, 33, 0.72);
+
+  --texto: #eef1fa;
+  --texto-2: #b3bad0;
+  --texto-3: #7c849e;
+  --texto-inverso: #0b0b14;
+
+  --marca: #8b5cf6;
+  --marca-clara: #c4b5fd;
+  --marca-escura: #6d28d9;
+  --marca-suave: rgba(139, 92, 246, 0.14);
+  --marca-brilho: rgba(139, 92, 246, 0.45);
+
+  --entrada: #34d399;
+  --entrada-suave: rgba(52, 211, 153, 0.13);
+  --saida: #fb7185;
+  --saida-suave: rgba(251, 113, 133, 0.13);
+  --guardado: #f5b83d;
+  --guardado-suave: rgba(245, 184, 61, 0.14);
+  --cartao: #a78bfa;
+  --info: #60a5fa;
+  --info-suave: rgba(96, 165, 250, 0.13);
+  --atencao: #fbbf24;
+  --atencao-suave: rgba(251, 191, 36, 0.13);
+  --critico: #f43f5e;
+  --critico-suave: rgba(244, 63, 94, 0.14);
+
+  --sombra-1: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 1px 2px rgba(0, 0, 0, 0.4);
+  --sombra-2: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 30px -12px rgba(0, 0, 0, 0.7);
+  --sombra-3: 0 30px 80px -20px rgba(0, 0, 0, 0.8);
+  --grade: rgba(148, 163, 214, 0.07);
+
+  color-scheme: dark;
+}
+
+[data-tema='claro'] {
+  --fundo: #f4f5fa;
+  --fundo-2: #eceef6;
+  --superficie: #ffffff;
+  --superficie-2: #f7f8fc;
+  --superficie-3: #eef0f7;
+  --borda: rgba(30, 35, 60, 0.08);
+  --borda-forte: rgba(30, 35, 60, 0.16);
+  --vidro: rgba(255, 255, 255, 0.78);
+
+  --texto: #11131f;
+  --texto-2: #454b63;
+  --texto-3: #767d96;
+  --texto-inverso: #ffffff;
+
+  --marca: #7c3aed;
+  --marca-clara: #8b5cf6;
+  --marca-escura: #5b21b6;
+  --marca-suave: rgba(124, 58, 237, 0.1);
+  --marca-brilho: rgba(124, 58, 237, 0.3);
+
+  --entrada: #059669;
+  --entrada-suave: rgba(5, 150, 105, 0.1);
+  --saida: #e11d48;
+  --saida-suave: rgba(225, 29, 72, 0.09);
+  --guardado: #c28100;
+  --guardado-suave: rgba(194, 129, 0, 0.11);
+  --cartao: #7c3aed;
+  --info: #2563eb;
+  --info-suave: rgba(37, 99, 235, 0.09);
+  --atencao: #b45309;
+  --atencao-suave: rgba(180, 83, 9, 0.1);
+  --critico: #e11d48;
+  --critico-suave: rgba(225, 29, 72, 0.1);
+
+  --sombra-1: 0 1px 2px rgba(20, 24, 50, 0.06);
+  --sombra-2: 0 12px 32px -14px rgba(20, 24, 50, 0.18);
+  --sombra-3: 0 30px 80px -24px rgba(20, 24, 50, 0.3);
+  --grade: rgba(30, 35, 60, 0.07);
+
+  color-scheme: light;
+}

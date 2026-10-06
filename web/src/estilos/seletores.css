@@ -1,0 +1,281 @@
+/*
+ * Seletor e campo com sugestões: as listas do Fluxo, no lugar do <select> e do
+ * <datalist> nativos (que o sistema desenha quadrados, fora do visual do app).
+ */
+
+/* ---------- seletor (no lugar do <select> nativo) ---------- */
+.seletor {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+  color: var(--texto);
+  background: var(--superficie-2);
+  border: 1px solid var(--borda);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--t-rapida), background var(--t-rapida), box-shadow var(--t-rapida);
+}
+
+.seletor--campo {
+  height: 40px;
+  width: 100%;
+  padding: 0 10px 0 12px;
+  border-radius: 12px;
+}
+
+.seletor--pilula {
+  height: 34px;
+  padding: 0 10px 0 6px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  background: color-mix(in srgb, var(--superficie-2) 80%, transparent);
+}
+
+.seletor--pilula:not(:has(.seletor__icone)) {
+  padding-left: 14px;
+}
+
+.seletor:hover:not(:disabled) {
+  border-color: var(--borda-forte);
+  background: var(--superficie-3);
+}
+
+.seletor:focus-visible,
+.seletor--aberto {
+  outline: none;
+  border-color: var(--marca);
+  box-shadow: 0 0 0 4px var(--marca-suave);
+}
+
+.seletor:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.seletor__icone {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.seletor__texto {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.seletor__texto--vazio {
+  color: var(--texto-3);
+}
+
+.seletor__seta {
+  flex-shrink: 0;
+  color: var(--texto-3);
+  transition: transform var(--t-media) var(--curva);
+}
+
+.seletor--aberto .seletor__seta {
+  transform: rotate(180deg);
+  color: var(--marca-clara);
+}
+
+/* ---------- lista flutuante (seletor e sugestões) ---------- */
+.flutuante {
+  z-index: 55;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--superficie);
+  border: 1px solid var(--borda-forte);
+  box-shadow: var(--sombra-3);
+  font-size: 13.5px;
+}
+
+.flutuante__grupo {
+  padding: 10px 10px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texto-3);
+}
+
+.flutuante__grupo:first-child {
+  padding-top: 4px;
+}
+
+.flutuante__opcao {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 7px 10px;
+  border-radius: 9px;
+  color: var(--texto-2);
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--t-rapida), color var(--t-rapida);
+}
+
+.flutuante__opcao--ativa {
+  background: var(--superficie-3);
+  color: var(--texto);
+}
+
+.flutuante__opcao--escolhida {
+  color: var(--texto);
+  font-weight: 500;
+}
+
+.flutuante__opcao--escolhida.flutuante__opcao--ativa {
+  background: var(--marca-suave);
+}
+
+.flutuante__opcao[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.flutuante__icone {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.flutuante__textos {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.flutuante__rotulo {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flutuante__descricao {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--texto-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flutuante__marca {
+  flex-shrink: 0;
+  color: var(--marca-clara);
+}
+
+.flutuante__separador {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--borda);
+}
+
+.flutuante__selo {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--marca-clara);
+  background: var(--marca-suave);
+}
+
+.flutuante__atalho {
+  flex-shrink: 0;
+  min-width: 18px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font-family: var(--fonte-mono);
+  font-size: 12px;
+  text-align: right;
+  color: var(--texto-3);
+}
+
+.flutuante__info,
+.flutuante__seta {
+  flex-shrink: 0;
+  color: var(--texto-3);
+}
+
+.flutuante__opcao--contem {
+  color: var(--texto);
+}
+
+.flutuante__opcao[aria-expanded='true'] {
+  background: var(--superficie-3);
+  color: var(--texto);
+}
+
+.flutuante__opcao[aria-expanded='true'] .flutuante__seta {
+  color: var(--marca-clara);
+}
+
+/* Submenu ("Mais modelos"): um pouco acima da lista principal. A lista ao vivo de uma API
+   pode trazer nomes compridos: a largura tem teto e o nome corta com reticências. */
+.flutuante--sub {
+  z-index: 56;
+  max-width: min(380px, calc(100vw - 16px));
+}
+
+/* ---------- campo com sugestões ---------- */
+.campo-sugestoes {
+  position: relative;
+  width: 100%;
+}
+
+.campo-sugestoes__entrada {
+  padding-right: 38px;
+}
+
+.campo-sugestoes--invalido .campo-sugestoes__entrada {
+  border-color: var(--critico);
+}
+
+.campo-sugestoes--invalido .campo-sugestoes__entrada:focus {
+  box-shadow: 0 0 0 4px var(--critico-suave);
+}
+
+.campo-sugestoes__botao {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: var(--texto-3);
+  transform: translateY(-50%);
+  transition: background var(--t-rapida), color var(--t-rapida);
+}
+
+.campo-sugestoes__botao:hover:not(:disabled) {
+  background: var(--superficie-3);
+  color: var(--texto);
+}
+
+.campo-sugestoes__botao svg {
+  transition: transform var(--t-media) var(--curva);
+}
+
+.campo-sugestoes--aberto .campo-sugestoes__botao svg {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seletor__seta,
+  .campo-sugestoes__botao svg {
+    transition: none;
+  }
+}

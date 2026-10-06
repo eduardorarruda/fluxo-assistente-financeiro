@@ -1,0 +1,43 @@
+{
+  "name": "fluxo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Assistente financeiro pessoal conectado ao Nubank e bancos via Open Finance (Pluggy). NestJS 12 + React 19 + SQLite rodando localmente.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eduardorarruda/fluxo-assistente-financeiro.git"
+  },
+  "homepage": "https://github.com/eduardorarruda/fluxo-assistente-financeiro#readme",
+  "keywords": [
+    "financeiro",
+    "nubank",
+    "open-finance",
+    "pluggy",
+    "orçamento",
+    "caixinha",
+    "metas",
+    "assistente-ia",
+    "react",
+    "nestjs",
+    "sqlite"
+  ],
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c magenta,cyan \"npm:dev -w server\" \"npm:dev -w web\"",
+    "build": "npm run build -w web && npm run build -w server",
+    "start": "node server/dist/main.js",
+    "test": "npm test -w server && npm test -w web",
+    "test:cov": "npm run test:cov -w server && npm run test:cov -w web",
+    "typecheck": "npm run typecheck -w server && npm run typecheck -w web"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}

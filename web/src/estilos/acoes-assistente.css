@@ -1,0 +1,337 @@
+/* ---------- ações do assistente (cartões dentro da resposta) ---------- */
+
+.cartoes-acao {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.cartao-acao {
+  --cor-acao: var(--marca);
+  position: relative;
+  border-radius: var(--raio);
+  border: 1px solid var(--borda);
+  background: var(--superficie);
+}
+
+/* ---------- proposta ---------- */
+.cartao-acao--proposta {
+  padding: 14px 16px 14px 18px;
+  box-shadow: var(--sombra-1);
+  overflow: hidden;
+}
+
+/* A faixa da esquerda diz o estado de longe: roxo esperando, verde feito, cinza fechado, vermelho falhou. */
+.cartao-acao--proposta::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--cor-acao);
+  opacity: 0.9;
+}
+
+.cartao-acao--pendente {
+  border-color: color-mix(in srgb, var(--marca) 34%, var(--borda));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--marca) 9%, transparent), transparent 55%),
+    var(--superficie);
+  box-shadow: var(--sombra-1), 0 10px 30px -18px var(--marca-brilho);
+}
+
+.cartao-acao--feita { --cor-acao: var(--entrada); }
+.cartao-acao--desfeita,
+.cartao-acao--recusada,
+.cartao-acao--expirada { --cor-acao: var(--texto-3); }
+.cartao-acao--falhou { --cor-acao: var(--critico); }
+
+.cartao-acao__cabeca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cartao-acao__icone {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  color: var(--cor-acao);
+  background: color-mix(in srgb, var(--cor-acao) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cor-acao) 24%, transparent);
+}
+
+.cartao-acao__titulos {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.cartao-acao__titulo {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--texto);
+  letter-spacing: -0.01em;
+}
+
+.cartao-acao__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--cor-acao);
+}
+
+.cartao-acao--pendente .cartao-acao__estado { color: var(--marca-clara); }
+
+.cartao-acao__descricao {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--texto);
+  overflow-wrap: anywhere;
+}
+
+.cartao-acao--recusada .cartao-acao__descricao,
+.cartao-acao--expirada .cartao-acao__descricao,
+.cartao-acao--desfeita .cartao-acao__descricao {
+  color: var(--texto-3);
+}
+
+.cartao-acao__efeito {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--texto-2);
+}
+
+.cartao-acao__aviso,
+.cartao-acao__erro {
+  margin-top: 8px;
+  padding: 7px 10px;
+  border-radius: var(--raio-sm);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.cartao-acao__aviso {
+  color: var(--texto-2);
+  background: var(--atencao-suave);
+}
+
+.cartao-acao__erro {
+  color: var(--critico);
+  background: var(--critico-suave);
+}
+
+/* ---------- exemplos ---------- */
+.cartao-acao__exemplos { margin-top: 8px; }
+
+.cartao-acao__ver {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--marca-clara);
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.cartao-acao__ver:hover { color: var(--texto); }
+
+.cartao-acao__ver:focus-visible {
+  outline: 2px solid var(--marca);
+  outline-offset: 2px;
+}
+
+.cartao-acao__lista {
+  display: flex;
+  flex-direction: column;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
+  border-radius: var(--raio-sm);
+  border: 1px solid var(--borda);
+  background: var(--superficie-2);
+}
+
+.cartao-acao__exemplo {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'data nome valor' 'troca troca troca';
+  column-gap: 10px;
+  row-gap: 2px;
+  padding: 7px 10px;
+  font-size: 12.5px;
+}
+
+.cartao-acao__exemplo + .cartao-acao__exemplo { border-top: 1px solid var(--borda); }
+.cartao-acao__exemplo-data { grid-area: data; color: var(--texto-3); }
+.cartao-acao__exemplo-nome { grid-area: nome; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--texto); }
+.cartao-acao__exemplo-valor { grid-area: valor; color: var(--texto-2); }
+
+.cartao-acao__exemplo-troca {
+  grid-area: troca;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--texto-3);
+}
+
+.cartao-acao__de { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--texto-3) 60%, transparent); }
+.cartao-acao__para { color: var(--entrada); font-weight: 500; }
+
+/* ---------- botões ---------- */
+.cartao-acao__botoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.cartao-acao__dica {
+  font-size: 12px;
+  color: var(--texto-3);
+}
+
+/* ---------- ação direta: uma linha ---------- */
+.cartao-acao--direta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 10px;
+  border-color: color-mix(in srgb, var(--entrada) 22%, var(--borda));
+  background: color-mix(in srgb, var(--entrada) 5%, var(--superficie));
+}
+
+.cartao-acao--direta.cartao-acao--desfeita {
+  border-color: var(--borda);
+  background: var(--superficie-2);
+}
+
+.cartao-acao--direta { --cor-acao: var(--entrada); }
+.cartao-acao--direta.cartao-acao--desfeita { --cor-acao: var(--texto-3); }
+
+.cartao-acao__icone--mini {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+}
+
+.cartao-acao__linha {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--texto-2);
+  overflow-wrap: anywhere;
+}
+
+.cartao-acao__linha strong {
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.cartao-acao--desfeita .cartao-acao__linha,
+.cartao-acao--desfeita .cartao-acao__linha strong { color: var(--texto-3); }
+
+.cartao-acao__aviso-inline { color: var(--atencao); }
+.cartao-acao__erro-inline { color: var(--critico); }
+
+.cartao-acao__desfazer {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--borda-forte);
+  background: var(--superficie);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--texto-2);
+  cursor: pointer;
+  transition: color var(--t-rapida), border-color var(--t-rapida), background var(--t-rapida);
+}
+
+.cartao-acao__desfazer:hover:not(:disabled) {
+  color: var(--texto);
+  border-color: color-mix(in srgb, var(--marca) 45%, var(--borda-forte));
+  background: var(--marca-suave);
+}
+
+.cartao-acao__desfazer:focus-visible {
+  outline: 2px solid var(--marca);
+  outline-offset: 2px;
+}
+
+.cartao-acao__desfazer:disabled { opacity: 0.6; cursor: default; }
+
+/* ---------- no modo conversação ---------- */
+/* Com uma proposta na tela, a esfera encolhe de verdade (e não achata): a decisão vem primeiro. */
+.modo-voz:has(.modo-voz__proposta) .modo-voz__orbe {
+  width: clamp(56px, 9vh, 120px);
+  flex-shrink: 0;
+}
+
+.modo-voz:has(.modo-voz__proposta) .modo-voz__centro { gap: 6px; }
+.modo-voz:has(.modo-voz__proposta) .modo-voz__estado { min-height: 0; }
+.modo-voz:has(.modo-voz__proposta) .modo-voz__dica { display: none; }
+
+.modo-voz__proposta {
+  width: min(560px, calc(100% - 32px));
+  margin: 0 auto 12px;
+}
+
+.cartao-acao--grande {
+  padding: 18px 20px 18px 22px;
+  border-radius: var(--raio-lg);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--marca) 12%, transparent), transparent 60%),
+    var(--vidro);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--sombra-3);
+}
+
+.cartao-acao--grande .cartao-acao__titulo { font-size: 16px; }
+.cartao-acao--grande .cartao-acao__descricao { font-size: 15px; }
+
+.cartao-acao--grande .cartao-acao__botoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 16px;
+}
+
+.cartao-acao--grande .cartao-acao__botoes .botao {
+  justify-content: center;
+  min-height: 48px;
+  font-size: 15px;
+}
+
+.modo-voz__proposta-dica {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--texto-3);
+}
+
+@media (max-width: 640px) {
+  .cartao-acao__exemplo { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'data valor' 'nome nome' 'troca troca'; }
+  .cartao-acao--direta { align-items: flex-start; }
+}

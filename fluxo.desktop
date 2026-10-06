@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Fluxo
+GenericName=Finanças pessoais
+Comment=Nubank e Open Finance: conta, cartão, caixinhas, orçamento e metas
+Exec=@PASTA@/fluxo.sh
+Icon=@PASTA@/web/public/fluxo.svg
+Terminal=false
+Categories=Office;Finance;
+Keywords=financeiro;dinheiro;nubank;orcamento;gastos;cartao;caixinha;
+StartupNotify=true
+StartupWMClass=Fluxo

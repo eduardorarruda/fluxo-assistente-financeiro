@@ -1,0 +1,1 @@
+ALTER TABLE `transacoes` ADD `parcela_instante_compra` text;

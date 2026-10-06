@@ -1,0 +1,22 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "fluxo-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "port": 5173
+    },
+    {
+      "name": "fluxo",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "server/dist/main.js"
+      ],
+      "port": 8778
+    }
+  ]
+}

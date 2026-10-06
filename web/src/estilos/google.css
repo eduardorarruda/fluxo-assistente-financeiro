@@ -1,0 +1,378 @@
+/*
+ * Google Agenda (Ajustes): conexão e preferências lado a lado, o passo a passo
+ * do Google Cloud embaixo. As cores dos exemplos são as da paleta de eventos
+ * do próprio Google Agenda — é assim que a pessoa vai ver lá.
+ */
+
+.ajustes-google__intro {
+  max-width: 78ch;
+  margin-bottom: 16px;
+}
+
+.ajustes-google__grade {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.painel-google,
+.preferencias-google {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--superficie-2);
+  border: 1px solid var(--borda);
+}
+
+.preferencias-google {
+  gap: 0;
+}
+
+.painel-google__titulo {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texto-3);
+}
+
+.preferencias-google .painel-google__titulo {
+  margin-bottom: 4px;
+}
+
+.painel-google__titulo--espaco {
+  margin-top: 18px;
+}
+
+.painel-google__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.painel-google__acoes a.botao {
+  text-decoration: none;
+}
+
+.painel-google__erro {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--critico);
+  background: var(--critico-suave);
+  border: 1px solid color-mix(in srgb, var(--critico) 22%, transparent);
+}
+
+.painel-google__erro svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.painel-google__credenciais {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.painel-google__cliente {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--texto-2);
+}
+
+.painel-google__cliente svg {
+  color: var(--entrada);
+}
+
+.painel-google__cliente code {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--texto-3);
+}
+
+/* ---------- formulário das credenciais ---------- */
+.credenciais-google {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------- conta conectada ---------- */
+.conta-google {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+}
+
+.conta-google__avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--texto);
+  /* As quatro cores do Google num anel fino: a pessoa reconhece de onde é a conta, e a letra fica legível. */
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--superficie-3), var(--superficie-3)) padding-box,
+    conic-gradient(from 210deg, #4285f4, #34a853, #fbbc05, #ea4335, #4285f4) border-box;
+}
+
+.conta-google__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.conta-google__texto strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- esperando o Google ---------- */
+.espera-google {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--marca-suave);
+  border: 1px solid color-mix(in srgb, var(--marca) 35%, transparent);
+  animation: espera-google 2.4s ease-in-out infinite;
+}
+
+.espera-google > svg {
+  margin-top: 1px;
+  color: var(--marca-clara);
+}
+
+.espera-google p {
+  margin-top: 4px;
+}
+
+@keyframes espera-google {
+  50% { border-color: color-mix(in srgb, var(--marca) 70%, transparent); }
+}
+
+/* ---------- lembretes ---------- */
+.lembretes-google {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  margin-top: 6px;
+}
+
+.lembretes-google .chip:disabled {
+  opacity: 0.6;
+}
+
+.lembretes-google__nota {
+  margin-top: 10px;
+  line-height: 1.5;
+}
+
+/* ---------- como aparece ---------- */
+.legenda-google {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px 12px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Cada linha divide as colunas da lista: todas as "pílulas" ficam da mesma largura. */
+.legenda-google li {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+
+.legenda-google__evento {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--texto);
+  background: color-mix(in srgb, var(--cor-evento) 16%, var(--superficie));
+  border-left: 3px solid var(--cor-evento);
+}
+
+/* ---------- passo a passo ---------- */
+.guia-google {
+  margin-top: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--borda);
+  overflow: hidden;
+}
+
+.guia-google__topo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  background: var(--superficie-2);
+  transition: background var(--t-rapida);
+}
+
+.guia-google__topo:hover {
+  background: var(--superficie-3);
+}
+
+.guia-google__selo {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  color: var(--guardado);
+  background: var(--guardado-suave);
+}
+
+.guia-google__titulo {
+  flex: 1;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.guia-google__titulo .texto-3 {
+  font-weight: 400;
+}
+
+.guia-google__seta {
+  color: var(--texto-3);
+  transition: transform var(--t-media) var(--curva);
+}
+
+.guia-google__seta--aberta {
+  transform: rotate(180deg);
+}
+
+.guia-google__passos {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 16px 14px;
+  overflow: hidden;
+  counter-reset: passo;
+}
+
+.guia-google__passo {
+  position: relative;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 0;
+}
+
+/* O fio que liga um passo ao seguinte. */
+.guia-google__passo:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  top: 38px;
+  bottom: -8px;
+  left: 12.5px;
+  width: 1px;
+  background: var(--borda-forte);
+}
+
+.guia-google__numero {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--marca-clara);
+  background: var(--marca-suave);
+  border: 1px solid color-mix(in srgb, var(--marca) 30%, transparent);
+}
+
+.guia-google__conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.guia-google__conteudo p {
+  line-height: 1.55;
+}
+
+.guia-google__linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.guia-google__link {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--marca-clara);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.guia-google__link:hover {
+  text-decoration: underline;
+}
+
+.guia-google__codigo {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- telas menores ---------- */
+@media (max-width: 1100px) {
+  .ajustes-google__grade { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .lembretes-google { grid-template-columns: minmax(0, 1fr); }
+  .espera-google { grid-template-columns: auto minmax(0, 1fr); }
+  .espera-google > .botao { grid-column: 1 / -1; justify-self: start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .espera-google { animation: none; }
+}
+
+.painel-google__dica {
+  flex-basis: 100%;
+  line-height: 1.5;
+}

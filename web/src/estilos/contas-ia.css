@@ -1,0 +1,489 @@
+/*
+ * Contas do assistente nos Ajustes: as duas seções (pelo plano / pela chave de API),
+ * o "Adicionar conta" com a escolha em cartões e o campo da chave.
+ * Cores só pelos tokens (tokens.css): os dois temas saem daqui sem regra extra.
+ */
+
+/* ---------- seções ---------- */
+.ajustes-ia__contas {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ajustes-ia__secao {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ajustes-ia__secao-topo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0 2px;
+}
+
+.ajustes-ia__secao-topo h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.ajustes-ia__secao-tipo {
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texto-3);
+  background: var(--superficie-3);
+}
+
+.grupo-cli__titulo h4 {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Seção de API sem contas: um convite, não um buraco. */
+.ajustes-ia__vazio-api {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px dashed var(--borda-forte);
+  background: color-mix(in srgb, var(--info-suave) 55%, transparent);
+}
+
+.ajustes-ia__vazio-api > svg {
+  flex-shrink: 0;
+  color: var(--info);
+}
+
+.ajustes-ia__vazio-api p {
+  flex: 1;
+  min-width: 200px;
+  line-height: 1.5;
+}
+
+/* "Adicionar conta" no fim da lista: o lugar onde o formulário abre. */
+.ajustes-ia__adicionar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 8px;
+  width: 100%;
+  min-height: 50px;
+  padding: 10px 14px;
+  border-radius: 18px;
+  border: 1px dashed var(--borda-forte);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--texto-2);
+  transition: border-color var(--t-rapida), background var(--t-rapida), color var(--t-rapida);
+}
+
+.ajustes-ia__adicionar svg {
+  color: var(--marca-clara);
+}
+
+.ajustes-ia__adicionar .texto-3 {
+  font-size: 12.5px;
+  font-weight: 400;
+}
+
+.ajustes-ia__adicionar:hover {
+  border-color: color-mix(in srgb, var(--marca) 55%, var(--borda-forte));
+  background: var(--marca-suave);
+  color: var(--texto);
+}
+
+.ajustes-ia__adicionar:focus-visible {
+  outline: none;
+  border-color: var(--marca);
+  box-shadow: 0 0 0 4px var(--marca-suave);
+}
+
+/* ---------- escolha em cartões (como conectar / qual provedor) ---------- */
+.escolha-cartoes {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.escolha-cartoes__legenda {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  margin-bottom: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--texto-2);
+}
+
+.escolha-cartoes__passo {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--marca-clara);
+  background: var(--marca-suave);
+}
+
+.escolha-cartoes__grade {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+}
+
+.escolha-cartoes--compacto .escolha-cartoes__grade {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+}
+
+.cartao-escolha {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px 40px 12px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--borda);
+  background: var(--superficie-2);
+  cursor: pointer;
+  transition: border-color var(--t-rapida), background var(--t-rapida), box-shadow var(--t-rapida);
+}
+
+.escolha-cartoes--compacto .cartao-escolha {
+  align-items: center;
+  padding: 10px 38px 10px 10px;
+}
+
+.cartao-escolha:hover:not(.cartao-escolha--off) {
+  border-color: var(--borda-forte);
+  background: var(--superficie-3);
+}
+
+.cartao-escolha:has(.cartao-escolha__radio:checked) {
+  border-color: var(--marca);
+  background: color-mix(in srgb, var(--marca-suave) 75%, var(--superficie-2));
+}
+
+.cartao-escolha:has(.cartao-escolha__radio:focus-visible) {
+  border-color: var(--marca);
+  box-shadow: 0 0 0 4px var(--marca-suave);
+}
+
+.cartao-escolha--off {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* O rádio de verdade fica (teclado e leitor de tela), mas quem desenha é o cartão. */
+.cartao-escolha__radio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cartao-escolha__icone {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  color: var(--texto-2);
+  background: var(--superficie-3);
+  transition: color var(--t-rapida), background var(--t-rapida);
+}
+
+.cartao-escolha:has(.cartao-escolha__radio:checked) .cartao-escolha__icone {
+  color: var(--marca-clara);
+  background: var(--marca-suave);
+}
+
+/* Provedor: a marca do provedor já traz o próprio fundo. */
+.escolha-cartoes--compacto .cartao-escolha__icone,
+.escolha-cartoes--compacto .cartao-escolha:has(.cartao-escolha__radio:checked) .cartao-escolha__icone {
+  width: auto;
+  height: auto;
+  background: none;
+}
+
+.cartao-escolha__textos {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.cartao-escolha__titulo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.cartao-escolha__selo {
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--texto-3);
+  background: var(--superficie-3);
+}
+
+.cartao-escolha__descricao {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--texto-3);
+  overflow-wrap: anywhere;
+}
+
+.cartao-escolha__marca {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--borda-forte);
+  color: transparent;
+  transition: border-color var(--t-rapida), background var(--t-rapida), color var(--t-rapida), transform var(--t-media) var(--curva-mola);
+}
+
+.escolha-cartoes--compacto .cartao-escolha__marca {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.cartao-escolha:has(.cartao-escolha__radio:checked) .cartao-escolha__marca {
+  border-color: var(--marca);
+  color: var(--marca-clara);
+  background: var(--marca-suave);
+}
+
+/* ---------- formulário de conta nova ---------- */
+.nova-conta__largo {
+  grid-column: 1 / -1;
+}
+
+.nova-conta__aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--texto-2);
+  background: var(--atencao-suave);
+  border: 1px solid color-mix(in srgb, var(--atencao) 26%, transparent);
+}
+
+.nova-conta__aviso svg,
+.nova-conta__erro svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.nova-conta__aviso svg {
+  color: var(--atencao);
+}
+
+.nova-conta__erro {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--critico);
+  background: var(--critico-suave);
+}
+
+/* ---------- campo da chave ---------- */
+.campo-chave__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.campo-chave__topo .campo-ia__rotulo {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--texto-3);
+}
+
+.campo-chave__link {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--marca-clara);
+  border-radius: 6px;
+  transition: color var(--t-rapida);
+}
+
+.campo-chave__link:hover {
+  color: var(--texto);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.campo-chave__caixa {
+  position: relative;
+}
+
+.campo-chave__entrada {
+  padding-right: 46px;
+}
+
+.campo-chave__ver {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  color: var(--texto-3);
+  transform: translateY(-50%);
+  transition: background var(--t-rapida), color var(--t-rapida);
+}
+
+.campo-chave__ver:hover:not(:disabled) {
+  color: var(--texto);
+  background: var(--superficie-3);
+}
+
+.campo-chave__ver[aria-pressed='true'] {
+  color: var(--marca-clara);
+}
+
+.campo-chave__ver:focus-visible {
+  outline-offset: 0;
+}
+
+/* ---------- conta de API: cartão e detalhes ---------- */
+.ajuste-conta__chave {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ajuste-conta__chave code,
+.detalhes-api__chave-atual code {
+  font-family: var(--fonte-mono);
+  font-size: 12px;
+  color: var(--texto-2);
+}
+
+.ajuste-conta__detalhes.detalhes-api {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.detalhes-api__dados {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.detalhes-api__chave {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--superficie-2);
+  border: 1px solid var(--borda);
+}
+
+.detalhes-api__chave-atual {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  min-height: 31px;
+  font-size: 13px;
+  color: var(--texto-2);
+}
+
+.detalhes-api__chave-atual > svg {
+  color: var(--texto-3);
+}
+
+.detalhes-api__trocar {
+  margin-left: auto;
+}
+
+.detalhes-api__nova-chave {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detalhes-api__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 760px) {
+  .detalhes-api__dados { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Coluna estreita (janela pequena ou a lista de ajustes espremida): um campo por linha,
+   decidido pela largura do próprio formulário, não da janela. */
+.nova-conta,
+.ajuste-conta {
+  container-type: inline-size;
+}
+
+@container (max-width: 520px) {
+  .nova-conta__campos,
+  .ajuste-conta__detalhes,
+  .detalhes-api__dados {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cartao-escolha,
+  .cartao-escolha__icone,
+  .cartao-escolha__marca,
+  .ajustes-ia__adicionar {
+    transition: none;
+  }
+}

@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+.env
+*.log
+.vite/
+# Tudo o que é da pessoa: banco, backups, sessão, conversas, chaves, modelos, Google
+data/
+*.tsbuildinfo

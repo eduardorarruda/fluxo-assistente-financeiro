@@ -1,0 +1,1 @@
+ALTER TABLE `transacoes` ADD `outro_credito` text;

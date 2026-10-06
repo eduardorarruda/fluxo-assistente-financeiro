@@ -1,0 +1,509 @@
+/*
+ * Contas a pagar: a lista por seção (atrasadas, semana, mês, próximas, pagas),
+ * o diálogo de pagamento e os dois campos novos do Fluxo — o calendário (no
+ * lugar do <input type="date">) e o dinheiro com máscara de real.
+ */
+
+/* ---------- seções da lista ---------- */
+.contas-secoes {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.contas-secao {
+  --cor-secao: var(--texto-3);
+  border-radius: var(--raio);
+}
+
+.contas-secao--atrasadas { --cor-secao: var(--critico); }
+.contas-secao--semana { --cor-secao: var(--atencao); }
+.contas-secao--mes { --cor-secao: var(--info); }
+.contas-secao--proximas { --cor-secao: var(--marca-clara); }
+.contas-secao--pagas { --cor-secao: var(--entrada); }
+
+.contas-secao--atrasadas {
+  padding: 10px 8px 4px;
+  margin: 0 -8px;
+  background: color-mix(in srgb, var(--critico) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--critico) 20%, transparent);
+}
+
+.contas-secao__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 8px 6px;
+}
+
+.contas-secao__topo h3 {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cor-secao);
+}
+
+.contas-secao__mes {
+  margin: 10px 8px 2px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--texto-3);
+}
+
+.contas-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---------- uma conta ---------- */
+.conta-pagar {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto minmax(104px, auto) auto;
+  grid-template-areas: 'icone texto selo valor acoes';
+  align-items: center;
+  column-gap: 14px;
+  padding: 10px 8px;
+  border-radius: 12px;
+  transition: background var(--t-rapida);
+}
+
+.conta-pagar + .conta-pagar {
+  box-shadow: 0 -1px 0 var(--borda);
+}
+
+.conta-pagar:hover {
+  background: color-mix(in srgb, var(--superficie-3) 60%, transparent);
+}
+
+.conta-pagar > .categoria-icone { grid-area: icone; }
+.conta-pagar > .linha__texto { grid-area: texto; }
+.conta-pagar > .selo { grid-area: selo; justify-self: end; }
+
+.conta-pagar__titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.conta-pagar__titulo .selo {
+  flex-shrink: 0;
+}
+
+.conta-pagar__origem {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--marca-clara);
+}
+
+.conta-pagar .linha__sub svg {
+  vertical-align: -1px;
+}
+
+.conta-pagar__valor {
+  grid-area: valor;
+  justify-self: end;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.conta-pagar--atrasada .conta-pagar__valor { color: var(--critico); }
+
+.conta-pagar--paga .linha__titulo,
+.conta-pagar--paga .conta-pagar__valor {
+  color: var(--texto-2);
+}
+
+.conta-pagar--paga .conta-pagar__valor {
+  font-weight: 500;
+}
+
+.conta-pagar__acoes {
+  grid-area: acoes;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  min-width: 156px;
+  opacity: 0.6;
+  transition: opacity var(--t-rapida);
+}
+
+.conta-pagar:hover .conta-pagar__acoes,
+.conta-pagar:focus-within .conta-pagar__acoes {
+  opacity: 1;
+}
+
+.conta-pagar__acoes .botao {
+  margin-right: 4px;
+}
+
+.conta-pagar--fatura {
+  grid-template-columns: 40px minmax(0, 1fr) auto minmax(104px, auto);
+  grid-template-areas: 'icone texto selo valor';
+}
+
+.kpi--alerta .kpi__valor {
+  color: var(--critico);
+}
+
+.contas-vazio__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.contas-vazio__acoes .botao {
+  text-decoration: none;
+}
+
+.contas-faturas__nota {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 12px 8px 0;
+  line-height: 1.45;
+}
+
+.contas-faturas__nota svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ---------- formulário ---------- */
+.form-conta {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-conta__linha {
+  gap: 12px;
+}
+
+.form-conta__dica {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--texto-3);
+}
+
+.form-conta__dica svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.campo-dinheiro {
+  font-weight: 500;
+}
+
+/* ---------- marcar como paga ---------- */
+.pagar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pagar__intro {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.pagar__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: min(340px, 46vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 2px;
+}
+
+.pagar__nada {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 4px 4px;
+}
+
+.pagar__opcao {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--borda);
+  background: var(--superficie-2);
+  color: var(--texto);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--t-rapida), background var(--t-rapida), box-shadow var(--t-rapida);
+}
+
+.pagar__opcao:hover {
+  border-color: var(--borda-forte);
+  background: var(--superficie-3);
+}
+
+.pagar__opcao:focus-visible {
+  outline: none;
+  border-color: var(--marca);
+  box-shadow: 0 0 0 4px var(--marca-suave);
+}
+
+.pagar__opcao--escolhida,
+.pagar__opcao--escolhida:hover {
+  border-color: var(--marca);
+  background: var(--marca-suave);
+}
+
+.pagar__marca {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--borda-forte);
+  color: #fff;
+  transition: background var(--t-rapida), border-color var(--t-rapida);
+}
+
+.pagar__opcao--escolhida .pagar__marca {
+  background: var(--marca);
+  border-color: var(--marca);
+}
+
+.pagar__textos {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pagar__valor {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  white-space: nowrap;
+}
+
+.pagar__data {
+  max-width: 320px;
+}
+
+/* ---------- calendário (CampoData) ---------- */
+.calendario {
+  width: 296px;
+  padding: 10px 10px 8px;
+  overflow: visible;
+}
+
+.calendario__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.calendario__mes {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.calendario__nav {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: none;
+  background: none;
+  color: var(--texto-2);
+  cursor: pointer;
+  transition: background var(--t-rapida), color var(--t-rapida);
+}
+
+.calendario__nav:hover {
+  background: var(--superficie-3);
+  color: var(--texto);
+}
+
+.calendario__nav:focus-visible {
+  outline: 2px solid var(--marca);
+  outline-offset: 1px;
+}
+
+.calendario__grade {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 2px;
+  table-layout: fixed;
+}
+
+.calendario__grade th {
+  padding: 6px 0 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--texto-3);
+  text-align: center;
+}
+
+.calendario__grade td {
+  padding: 0;
+  text-align: center;
+}
+
+.calendario__dia {
+  position: relative;
+  width: 100%;
+  height: 34px;
+  border-radius: 10px;
+  border: none;
+  background: none;
+  color: var(--texto-2);
+  font: inherit;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background var(--t-rapida), color var(--t-rapida);
+}
+
+.calendario__dia:hover {
+  background: var(--superficie-3);
+  color: var(--texto);
+}
+
+.calendario__dia:focus-visible {
+  outline: 2px solid var(--marca);
+  outline-offset: 1px;
+}
+
+.calendario__dia--hoje {
+  color: var(--marca-clara);
+  font-weight: 700;
+}
+
+.calendario__dia--hoje::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.calendario__dia--escolhido,
+.calendario__dia--escolhido:hover {
+  background: var(--marca);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 6px 16px -8px var(--marca-brilho);
+}
+
+.calendario__rodape {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--borda);
+}
+
+.calendario__atalho {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--borda);
+  background: var(--superficie-2);
+  color: var(--texto-2);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: border-color var(--t-rapida), color var(--t-rapida), background var(--t-rapida);
+}
+
+.calendario__atalho:hover {
+  border-color: var(--borda-forte);
+  background: var(--superficie-3);
+  color: var(--texto);
+}
+
+.calendario__atalho:focus-visible {
+  outline: 2px solid var(--marca);
+  outline-offset: 1px;
+}
+
+/* ---------- telas estreitas ---------- */
+@media (max-width: 760px) {
+  .conta-pagar {
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    grid-template-areas:
+      'icone texto valor'
+      '. selo acoes';
+    row-gap: 6px;
+  }
+
+  .conta-pagar > .selo { justify-self: start; }
+
+  .conta-pagar--fatura {
+    grid-template-areas:
+      'icone texto valor'
+      '. selo .';
+  }
+
+  .conta-pagar__acoes {
+    min-width: 0;
+    opacity: 1;
+  }
+
+  /* O nome nunca some atrás dos selos: quebra a linha em vez de cortar. */
+  .conta-pagar__titulo {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .conta-pagar .linha__titulo,
+  .conta-pagar .linha__sub {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (hover: none) {
+  .conta-pagar__acoes { opacity: 1; }
+}
+
+/* ---------- Recorrências: "Transformar em conta a pagar" ---------- */
+.recorrencia__virar {
+  flex-shrink: 0;
+  opacity: 0.55;
+  transition: opacity var(--t-rapida);
+}
+
+.recorrencia:hover .recorrencia__virar,
+.recorrencia__virar:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .recorrencia__virar { opacity: 1; }
+}

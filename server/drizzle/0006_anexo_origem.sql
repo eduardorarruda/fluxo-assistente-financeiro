@@ -1,0 +1,1 @@
+ALTER TABLE `anexos` ADD `origem` text DEFAULT 'pessoa' NOT NULL;
