@@ -1,6 +1,7 @@
 # Contribuindo
 
-Obrigado por querer contribuir! Siga as guidelines abaixo.
+Obrigado por querer contribuir! Siga as guidelines abaixo e o nosso
+[código de conduta](CODE_OF_CONDUCT.md).
 
 ## Rodando testes
 
@@ -29,7 +30,8 @@ npm run build
 - Nenhum caminho local (`/home/user/...`) em código de produção
 - Nenhum dado real (nomes, CPF, CNPJ, valores)
 
-**Reportar vulnerabilidades:** use GitHub Security Advisories (não abra issue pública).
+**Reportar vulnerabilidades:** use GitHub Security Advisories (não abra issue pública) — veja
+[SECURITY.md](SECURITY.md).
 
 ## Padrão de commit
 
