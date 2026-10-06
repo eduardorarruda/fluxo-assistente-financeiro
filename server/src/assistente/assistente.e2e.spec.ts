@@ -12,6 +12,7 @@ import { ModelosAoVivo, type BuscarHttp } from './apis/modelos-ao-vivo';
 import { chamada, modeloFalso, texto as textoFalso } from './apis/testing/modelo-falso';
 import { lerLinhaJson, texto } from './cli/comum';
 import type { AdaptadorCli } from './cli/tipos';
+import { ResolvedorDeClis } from './cli/resolvedor';
 import { contaPadraoDe, RepositorioAssistente } from './dados/repositorio-assistente';
 import { RESOLVEDOR_CLI, type ResolvedorCli } from './execucao/execucoes';
 import { Ferramentas } from './ferramentas/ferramentas';
@@ -113,6 +114,9 @@ describe('Assistente (ponta a ponta)', () => {
       .overrideProvider(FABRICA_DE_MODELOS).useValue(fabrica)
       .overrideProvider(ModelosAoVivo).useValue(new ModelosAoVivo(modelosDaApi))
       .compile();
+    // Os CLIs "estão instalados" aqui como em qualquer máquina: o teste não pode depender
+    // do que existe no PATH (na CI não há Claude Code, e a conta padrão sumiria).
+    vi.spyOn(modulo.get(ResolvedorDeClis), 'detectar').mockResolvedValue({ encontrado: { caminho: process.execPath, versao: '1.0.0' }, erro: null });
     app = modulo.createNestApplication();
     await app.listen(porta, '127.0.0.1');
     await enviar('post', '/api/demonstracao').expect(201);
