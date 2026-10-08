@@ -4,7 +4,7 @@ import { conta, transacao } from '../domain/testing/fabrica';
 import type { Dia } from '../domain/types';
 import type { DadosDaConexao } from '../provedores/provedor';
 import type { ProvedorDemo } from '../provedores/provedor-demo';
-import type { ProvedorPluggy } from '../provedores/provedor-pluggy';
+import { ProvedorPluggy } from '../provedores/provedor-pluggy';
 import { relogioFixo } from '../relogio';
 import { inicioDaRevisaoDaConta, Sincronizador } from './sincronizador';
 
@@ -107,15 +107,52 @@ describe('sincronização automática', () => {
     return { sincronizador: new Sincronizador(repo, {} as ProvedorDemo, pluggy as unknown as ProvedorPluggy, relogio), buscas };
   }
 
-  it('puxa de novo da Pluggy quando passou mais de 1 hora desde a última vez', async () => {
-    const { sincronizador, buscas } = aposMinutos(61);
+  it('puxa de novo da Pluggy quando passaram mais de 30 minutos desde a última vez', async () => {
+    const { sincronizador, buscas } = aposMinutos(31);
     await sincronizador.sincronizarAtrasadas();
     expect(buscas).toEqual(['item']);
   });
 
-  it('com menos de 1 hora, não puxa de novo', async () => {
-    const { sincronizador, buscas } = aposMinutos(45);
+  it('com menos de 30 minutos, não puxa de novo', async () => {
+    const { sincronizador, buscas } = aposMinutos(20);
     await sincronizador.sincronizarAtrasadas();
+    expect(buscas).toEqual([]);
+  });
+});
+
+describe('pedir ao banco', () => {
+  function comPedido(pedir: () => Promise<void>) {
+    const banco = abrirBanco(':memory:');
+    const repo = new Repositorio(banco, relogioFixo(HOJE));
+    repo.criarConexao('item', 'pluggy', 'MeuPluggy');
+    const buscas: string[] = [];
+    // Precisa ser um ProvedorPluggy de verdade para o Sincronizador tentar o pedido.
+    const pluggy = Object.assign(Object.create(ProvedorPluggy.prototype) as ProvedorPluggy, {
+      nome: 'pluggy',
+      pedirAtualizacao: vi.fn(pedir),
+      aguardarAtualizacao: vi.fn(async () => 'UPDATED'),
+      buscar: async (id: string) => { buscas.push(id); return dados({ situacao: 'UPDATED', atualizadaNoBanco: `${HOJE}T12:00:00.000Z` }); },
+    });
+    return { sincronizador: new Sincronizador(repo, {} as ProvedorDemo, pluggy, relogioFixo(HOJE)), pluggy, buscas };
+  }
+
+  it('Meu Pluggy recusa o pedido ("item cant be updated"): lê o que já tem, sem erro', async () => {
+    const { sincronizador, pluggy, buscas } = comPedido(async () => { throw new Error('MeuPluggy item cant be updated'); });
+    await expect(sincronizador.sincronizar('item', true)).resolves.toMatchObject({ novas: 0 });
+    expect(buscas).toEqual(['item']);
+    expect(pluggy.aguardarAtualizacao).not.toHaveBeenCalled();
+  });
+
+  it('banco que aceita o pedido: espera atualizar e depois lê', async () => {
+    const { sincronizador, pluggy, buscas } = comPedido(async () => undefined);
+    await sincronizador.sincronizar('item', true);
+    expect(pluggy.aguardarAtualizacao).toHaveBeenCalledWith('item');
+    expect(buscas).toEqual(['item']);
+  });
+
+  it('outros erros do pedido continuam aparecendo', async () => {
+    const { sincronizador, buscas } = comPedido(async () => { throw Object.assign(new Error('Unauthorized'), { status: 401 }); });
+    await expect(sincronizador.sincronizar('item', true)).rejects.toThrow(/credenciais/);
     expect(buscas).toEqual([]);
   });
 });

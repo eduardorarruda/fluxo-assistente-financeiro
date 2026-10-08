@@ -3,6 +3,7 @@ import { lazy, Suspense, useEffect } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router';
 import { api, ErroApi } from './api/cliente';
 import { useEstado } from './api/consultas';
+import { useSincronizarAoAbrir } from './api/sincronizacao-automatica';
 import { Marca } from './componentes/Marca';
 import { Fundo } from './componentes/Fundo';
 import { Navegacao, ROTAS } from './componentes/Navegacao';
@@ -95,6 +96,7 @@ export function App() {
   const cheio = ehAssistente(local.pathname);
   const estado = useEstado();
   useSinalDeVida();
+  useSincronizarAoAbrir(estado.data?.conexoes);
   useAtalhos();
   if (estado.error instanceof ErroApi && estado.error.status === 401) return <SemSessao />;
   return (

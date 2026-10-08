@@ -13,7 +13,9 @@ export const PROVEDOR_PLUGGY = Symbol('PROVEDOR_PLUGGY');
 const DIAS_PRIMEIRA_VEZ = 400;
 /** Nas seguintes, a conta revê 60 dias antes do que já está garantido (pendentes que viram efetivados). */
 const DIAS_REVISAO_CONTA = 60;
-const INTERVALO_AUTOMATICO_MS = 60 * 60 * 1000;
+const INTERVALO_AUTOMATICO_MS = 30 * 60 * 1000;
+/** A Pluggy recusa pedir atualização de itens do Meu Pluggy ("MeuPluggy item cant be updated"). */
+const NAO_ACEITA_PEDIDO = /can'?t be updated|cannot be updated/i;
 
 export class PluggyNaoConfigurada extends Error {
   constructor() {
@@ -184,8 +186,7 @@ export class Sincronizador implements OnModuleInit, OnApplicationShutdown {
     const desde = { cartao: somarDias(hoje, -DIAS_PRIMEIRA_VEZ), conta: inicioDaRevisaoDaConta(conexao, hoje) };
     const log = this.repositorio.iniciarLogDeSincronizacao(conexaoId);
     try {
-      if (pedirAoBanco && provedor instanceof ProvedorPluggy) {
-        await provedor.pedirAtualizacao(conexaoId);
+      if (pedirAoBanco && provedor instanceof ProvedorPluggy && (await this.pedirAoBanco(provedor, conexao.nome, conexaoId))) {
         await provedor.aguardarAtualizacao(conexaoId);
       }
       const recebidos = await provedor.buscar(conexaoId, desde);
@@ -206,7 +207,23 @@ export class Sincronizador implements OnModuleInit, OnApplicationShutdown {
     }
   }
 
-  /** Sincroniza as conexões reais paradas há mais de 1 hora. Erros ficam registrados, não derrubam nada. */
+  /**
+   * Pede ao banco dados novos. Conexões do Meu Pluggy não aceitam o pedido
+   * ("item can't be updated"): quem busca no banco é o próprio Meu Pluggy, uma
+   * vez por dia. Aí segue só com a leitura do que ele já trouxe, sem erro.
+   */
+  private async pedirAoBanco(provedor: ProvedorPluggy, nome: string, conexaoId: string): Promise<boolean> {
+    try {
+      await provedor.pedirAtualizacao(conexaoId);
+      return true;
+    } catch (e) {
+      if (!NAO_ACEITA_PEDIDO.test((e as Error)?.message ?? '')) throw e;
+      this.log.log(`${nome}: o banco é atualizado pelo próprio Meu Pluggy; lendo o que ele já trouxe.`);
+      return false;
+    }
+  }
+
+  /** Sincroniza as conexões reais paradas há mais de 30 minutos. Erros ficam registrados, não derrubam nada. */
   async sincronizarAtrasadas(): Promise<void> {
     const limite = this.relogio.agora().getTime() - INTERVALO_AUTOMATICO_MS;
     for (const c of this.repositorio.instantaneo().conexoes) {

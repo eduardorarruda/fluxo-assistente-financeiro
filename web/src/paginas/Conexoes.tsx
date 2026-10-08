@@ -278,9 +278,9 @@ export function Conexoes() {
         <Cartao titulo="Seus dados" icone="escudo">
           <ul className="como-ler">
             <li><Icone nome="cadeado" tamanho={16} /> <span>Tudo fica neste computador, em <code>data/fluxo.db</code>. O Fluxo só atende a própria máquina (127.0.0.1).</span></li>
-            <li><Icone nome="escudo" tamanho={16} /> <span>A única saída para a internet é a API da Pluggy, e só quando sincroniza.</span></li>
+            <li><Icone nome="escudo" tamanho={16} /> <span>Do banco, o que sai para a internet é só a API da Pluggy, e só quando sincroniza. Assistente de IA e Google Agenda só falam com fora se você os configurar.</span></li>
             <li><Icone nome="olho-fechado" tamanho={16} /> <span>O segredo da Pluggy fica no servidor. O navegador só recebe um token de 30 minutos para abrir o widget.</span></li>
-            <li><Icone nome="sincronizar" tamanho={16} /> <span>Conexões reais sincronizam sozinhas a cada hora enquanto o Fluxo está aberto.</span></li>
+            <li><Icone nome="sincronizar" tamanho={16} /> <span>O Fluxo puxa da Pluggy ao abrir e a cada 30 minutos enquanto está aberto. No Meu Pluggy, quem busca no banco é o próprio Meu Pluggy (cerca de uma vez por dia); para forçar, use Atualizar em meu.pluggy.ai.</span></li>
           </ul>
         </Cartao>
       </div>
