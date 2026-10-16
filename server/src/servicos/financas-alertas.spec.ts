@@ -34,7 +34,8 @@ describe('Financas · avisos dispensados', () => {
     const { repo, financas, definir } = montar();
     definir([aviso('google:erro', 'ATENCAO')]);
     financas.dispensarAlertas(['google:erro']);
-    expect(repo.alertasDispensados()).toEqual({ 'google:erro|ATENCAO': '2026-09-24T18:00:00.000Z' });
+    // O instante vem do relógio (15:00 no fuso local): em UTC depende de onde o teste roda.
+    expect(repo.alertasDispensados()).toEqual({ 'google:erro|ATENCAO': relogioFixo('2026-09-24').agora().toISOString() });
     expect(repo.configuracoes()).toEqual({ caixinhasNoSaldo: false, demoDispensada: false });
     // Outra instância (o servidor reiniciado) continua escondendo.
     const reaberta = new Financas(repo, relogioFixo('2026-09-24'));
