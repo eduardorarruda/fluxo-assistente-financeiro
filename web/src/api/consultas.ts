@@ -3,7 +3,7 @@ import { api, consulta } from './cliente';
 import type {
   CandidatoAPagamento, ContaAPagar, VencimentoDeCartao,
   Caixinhas, Categoria, Estado, Fluxo, Insights, Meta, Movimento, Natureza, Orcamento, PaginaMovimentos, Recorrencia,
-  Regra, Sincronizacao, VisaoCartao, VisaoGeral,
+  Regra, SituacaoDosAlertas, Sincronizacao, VisaoCartao, VisaoGeral,
 } from './tipos';
 
 export const useEstado = () =>
@@ -74,4 +74,42 @@ export const useSincronizacoes = () => useQuery({ queryKey: ['sincronizacoes'], 
 export function useEscrita<TEntrada, TSaida = unknown>(fazer: (e: TEntrada) => Promise<TSaida>) {
   const cliente = useQueryClient();
   return useMutation({ mutationFn: fazer, onSettled: () => cliente.invalidateQueries() });
+}
+
+export type PedidoDeDispensa = { tipo: 'dispensar'; ids: string[] } | { tipo: 'dispensar-todos' } | { tipo: 'restaurar' };
+
+/** Tira da visão geral os avisos dispensados (`null` = todos) e soma na contagem. */
+function esconderAlertas(v: VisaoGeral, ids: ReadonlySet<string> | null): VisaoGeral {
+  const ficam = ids ? v.alertas.filter((a) => !ids.has(a.id)) : [];
+  return { ...v, alertas: ficam, alertasDispensados: (v.alertasDispensados ?? 0) + v.alertas.length - ficam.length };
+}
+
+/**
+ * O "X" dos avisos, o "Marcar todos como vistos" e o "Mostrar dispensados".
+ * Dispensar some com o aviso na hora em toda visão geral em cache (o sino e as
+ * faixas leem dali); se o servidor recusar, tudo volta como estava. A resposta
+ * do servidor é a palavra final, e a visão geral é recarregada em seguida.
+ */
+export function useDispensaDeAlertas() {
+  const cliente = useQueryClient();
+  const chave = { queryKey: ['visao-geral'] };
+  return useMutation({
+    mutationFn: (p: PedidoDeDispensa) =>
+      api.post<SituacaoDosAlertas>(`/alertas/${p.tipo}`, p.tipo === 'dispensar' ? { ids: p.ids } : {}),
+    onMutate: async (p) => {
+      if (p.tipo === 'restaurar') return { antes: [] };
+      await cliente.cancelQueries(chave);
+      const antes = cliente.getQueriesData<VisaoGeral>(chave);
+      const ids = p.tipo === 'dispensar' ? new Set(p.ids) : null;
+      cliente.setQueriesData<VisaoGeral>(chave, (v) => v && esconderAlertas(v, ids));
+      return { antes };
+    },
+    onError: (_erro, _p, contexto) => {
+      for (const [k, dados] of contexto?.antes ?? []) cliente.setQueryData(k, dados);
+    },
+    onSuccess: (s) => {
+      cliente.setQueriesData<VisaoGeral>(chave, (v) => v && { ...v, alertas: s.alertas, alertasDispensados: s.dispensados });
+    },
+    onSettled: () => cliente.invalidateQueries(chave),
+  });
 }

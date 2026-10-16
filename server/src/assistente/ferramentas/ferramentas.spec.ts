@@ -71,6 +71,15 @@ describe('Ferramentas', () => {
     expect(dados!.mesesComDados.ultimo).toBe('2026-09');
   });
 
+  it('panorama não volta a falar do aviso que a pessoa dispensou no sino', async () => {
+    const { ferramentas, financas } = montar();
+    const [dispensado, ...resto] = financas.alertas();
+    expect(dispensado).toBeDefined();
+    financas.dispensarAlertas([dispensado!.id]);
+    const { dados } = await chamar(ferramentas, 'panorama');
+    expect(dados!.alertas.map((a: { titulo: string }) => a.titulo)).toEqual(resto.map((a) => a.titulo));
+  });
+
   it('resumo do mês bate com o da tela, por categoria e com o mês anterior', async () => {
     const { ferramentas, financas } = montar();
     const { dados } = await chamar(ferramentas, 'resumo_do_mes', { mes: '2026-08' });

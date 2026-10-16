@@ -26,7 +26,7 @@ import { Sessao } from './http/sessao';
 import { Vigia } from './http/vigia';
 import { ProvedorDemo } from './provedores/provedor-demo';
 import { ProvedorPluggy } from './provedores/provedor-pluggy';
-import { RelogioModule } from './relogio';
+import { RELOGIO, RelogioModule, type Relogio } from './relogio';
 import { ContasAPagar } from './servicos/contas-a-pagar';
 import { Financas } from './servicos/financas';
 import { PROVEDOR_PLUGGY, Sincronizador } from './servicos/sincronizador';
@@ -97,7 +97,8 @@ function lerConfigSemFalhar(): Config | null {
       useFactory: (config: Config) =>
         new Sessao(config.caminhoBanco === ':memory:' ? null : dirname(config.caminhoBanco), process.env.FLUXO_SESSAO),
     },
-    { provide: ProvedorDemo, useFactory: () => new ProvedorDemo() },
+    // A demonstração nasce do mesmo relógio do resto do app (fixável nos testes).
+    { provide: ProvedorDemo, useFactory: (relogio: Relogio) => new ProvedorDemo(() => relogio.hoje()), inject: [RELOGIO] },
     {
       provide: PROVEDOR_PLUGGY,
       inject: [CONFIG],

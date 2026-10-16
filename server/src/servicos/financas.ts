@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { gerarAlertas, type Alerta } from '../domain/alertas';
+import { dispensar, podarDispensas, separarDispensados, type Dispensas } from '../domain/alertas-dispensados';
 import { entraNaFatura, visaoDoCartao, type VisaoCartao } from '../domain/cartao';
 import { CATEGORIA_POR_ID, CATEGORIAS } from '../domain/categorias';
 import type { ContextoClassificacao } from '../domain/classificacao';
@@ -34,6 +35,12 @@ interface Base {
   inst: Instantaneo;
   movimentos: Movimento[];
   recorrencias: Recorrencia[];
+}
+
+/** Avisos visíveis + quantos a pessoa dispensou (para o "Mostrar N dispensados"). */
+export interface SituacaoDosAlertas {
+  alertas: Alerta[];
+  dispensados: number;
 }
 
 export interface FiltroMovimentos {
@@ -122,6 +129,7 @@ export class Financas {
     const patrimonio = calcularPatrimonio(inst.contas, inst.caixinhas, inst.investimentos, inst.configuracoes);
     const cartoes = this.cartoes();
     const orcamento = avaliarOrcamento(inst.orcamentos, resumoDoMes(movimentos, mesDe(hoje)), hoje);
+    const avisos = this.situacaoDosAlertas();
 
     const ultimos12 = intervaloDeMeses(somarMeses(mes, -11), mes);
     const serieMensal = ultimos12.map((m) => {
@@ -155,7 +163,8 @@ export class Financas {
       }),
       orcamento: orcamento.slice(0, 5),
       proximas,
-      alertas: this.alertas(),
+      alertas: avisos.alertas,
+      alertasDispensados: avisos.dispensados,
       ultimos: movimentos
         .filter((m) => m.data <= hoje && !m.pendente)
         .slice(-8)
@@ -225,7 +234,45 @@ export class Financas {
     };
   }
 
+  /** O que o sino, a visão geral e o assistente mostram: tudo menos o que a pessoa dispensou. */
   alertas(): Alerta[] {
+    return this.situacaoDosAlertas().alertas;
+  }
+
+  /**
+   * Os avisos visíveis e quantos estão dispensados (`domain/alertas-dispensados`).
+   * De passagem esquece a dispensa de aviso que já se resolveu ou piorou — assim,
+   * se o problema voltar, o aviso volta junto.
+   */
+  situacaoDosAlertas(): SituacaoDosAlertas {
+    const todos = this.todosOsAlertas();
+    const salvas = this.repositorio.alertasDispensados();
+    const dispensas = podarDispensas(salvas, todos);
+    if (Object.keys(dispensas).length !== Object.keys(salvas).length) this.repositorio.salvarAlertasDispensados(dispensas);
+    const { visiveis, dispensados } = separarDispensados(todos, dispensas);
+    return { alertas: visiveis, dispensados: dispensados.length };
+  }
+
+  /** Dispensa os avisos de agora com esses ids, na gravidade que o servidor calcula (id desconhecido é ignorado). */
+  dispensarAlertas(ids: readonly string[]): SituacaoDosAlertas {
+    return this.trocarDispensas((salvas, todos) => dispensar(salvas, todos, ids, this.relogio.agora().toISOString()));
+  }
+
+  dispensarTodosOsAlertas(): SituacaoDosAlertas {
+    return this.trocarDispensas((salvas, todos) => dispensar(salvas, todos, todos.map((a) => a.id), this.relogio.agora().toISOString()));
+  }
+
+  /** Mostra de novo tudo o que foi dispensado. */
+  restaurarAlertas(): SituacaoDosAlertas {
+    return this.trocarDispensas(() => ({}));
+  }
+
+  private trocarDispensas(novas: (salvas: Dispensas, todos: Alerta[]) => Dispensas): SituacaoDosAlertas {
+    this.repositorio.salvarAlertasDispensados(novas(this.repositorio.alertasDispensados(), this.todosOsAlertas()));
+    return this.situacaoDosAlertas();
+  }
+
+  private todosOsAlertas(): Alerta[] {
     const extras = [...this.fontesDeAlertas].flatMap((fonte) => fonte());
     if (!extras.length) return this.alertasDasFinancas();
     const peso = { CRITICO: 0, ATENCAO: 1, INFO: 2 } as const;

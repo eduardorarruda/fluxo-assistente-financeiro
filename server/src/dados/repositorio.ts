@@ -4,6 +4,7 @@ import type { SQLiteTable } from 'drizzle-orm/sqlite-core';
 import { BANCO } from '../db/banco.module';
 import type { Banco } from '../db/conexao';
 import * as s from '../db/schema';
+import type { Dispensas } from '../domain/alertas-dispensados';
 import type { Regra } from '../domain/categorizacao';
 import type { Meta } from '../domain/metas';
 import type { Ajuste } from '../domain/movimentos';
@@ -44,6 +45,9 @@ export interface Configuracoes {
 }
 
 const CONFIGURACOES_PADRAO: Configuracoes = { caixinhasNoSaldo: false, demoDispensada: false };
+
+/** Linha de `configuracoes` com os avisos dispensados (fora de `Configuracoes`: não é do cálculo). */
+const CHAVE_ALERTAS_DISPENSADOS = 'alertas:dispensados';
 
 export interface ResultadoSincronizacao {
   novas: number;
@@ -392,6 +396,33 @@ export class Repositorio {
     }
     this.mudou();
     return this.configuracoes();
+  }
+
+  /**
+   * Avisos que a pessoa dispensou (`domain/alertas-dispensados`), numa linha de
+   * `configuracoes` (`configuracoes()` só lê as chaves que conhece, então ela não
+   * atrapalha). Linha estragada vale como "nenhuma dispensa": o pior caso é o aviso voltar.
+   */
+  alertasDispensados(): Dispensas {
+    const linha = this.banco.select().from(s.configuracoes).where(eq(s.configuracoes.chave, CHAVE_ALERTAS_DISPENSADOS)).get();
+    if (!linha) return {};
+    try {
+      const valor = JSON.parse(linha.valor) as unknown;
+      if (!valor || typeof valor !== 'object' || Array.isArray(valor)) return {};
+      return Object.fromEntries(Object.entries(valor).filter((e): e is [string, string] => typeof e[1] === 'string'));
+    } catch {
+      return {};
+    }
+  }
+
+  /** Sem `mudou()`: dispensar não mexe em nenhum número, as contas em cache continuam valendo. */
+  salvarAlertasDispensados(dispensas: Dispensas): void {
+    const valor = JSON.stringify(dispensas);
+    this.banco
+      .insert(s.configuracoes)
+      .values({ chave: CHAVE_ALERTAS_DISPENSADOS, valor })
+      .onConflictDoUpdate({ target: s.configuracoes.chave, set: { valor } })
+      .run();
   }
 }
 

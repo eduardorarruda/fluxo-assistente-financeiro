@@ -58,8 +58,10 @@ async function abrirPluggy(tema: 'escuro' | 'claro', sandbox: boolean, itemId?: 
 }
 
 const ERROS_PLUGGY: Record<string, string> = {
+  // No Meu Pluggy cada banco é uma conexão (item) própria na Pluggy, e o widget não
+  // devolve o id da que já existe: o caminho é copiar o Item ID no painel.
   ITEM_USER_ALREADY_EXISTS:
-    'Essa conexão já existe na Pluggy. Copie o Item ID dela no painel da Pluggy e cole em "Já tenho o Item ID".',
+    'Essa conexão já existe na Pluggy (no Meu Pluggy, cada banco é uma conexão separada). No painel da Pluggy, abra Aplicações → a sua aplicação → Demo → Itens Conectados, copie o Item ID do banco e cole em "Já tenho o Item ID".',
 };
 
 function traduzirErro(mensagem: string | undefined): string {

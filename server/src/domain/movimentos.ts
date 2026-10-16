@@ -29,7 +29,12 @@ export function montarMovimentos(
   // Pix no crédito só se reconhece olhando a conta e o cartão juntos.
   const comPix = { ...ctx, cobrancasPixNoCredito: ctx.cobrancasPixNoCredito ?? parearPixNoCredito(comDatas) };
   // Entre contas suas: o que vem de (ou vai para) uma conta fora do Fluxo conta.
-  const ctxCompleto = { ...comPix, transferenciasDeFora: ctx.transferenciasDeFora ?? transferenciasDeFora(comDatas, comPix) };
+  const proprias = transferenciasProprias(comDatas, comPix);
+  const ctxCompleto = {
+    ...comPix,
+    transferenciasDeFora: ctx.transferenciasDeFora ?? proprias.deFora,
+    transferenciasInternas: ctx.transferenciasInternas ?? proprias.internas,
+  };
   return comDatas.map((t) => {
     const ajuste = ajustes.get(t.id);
     const natureza = ajuste?.natureza ?? classificar(t, ctxCompleto);
@@ -183,27 +188,96 @@ const JANELA_IDA_E_VOLTA = 5;
  * mais próximo no tempo para o mais distante.
  */
 export function transferenciasDeFora(transacoes: readonly Transacao[], ctx: ContextoClassificacao): Set<string> {
+  return transferenciasProprias(transacoes, ctx).deFora;
+}
+
+/** Dias de folga para as duas pontas de uma transferência entre dois bancos conectados (Pix cai na hora; TED/DOC até o dia útil seguinte). */
+const JANELA_ENTRE_CONTAS = 3;
+const PARECE_TRANSFERENCIA = /transf|pix|ted\b|doc\b|tef\b/;
+const MEIOS_DE_TRANSFERENCIA = new Set(['PIX', 'TED', 'DOC', 'TEF']);
+
+export interface TransferenciasProprias {
+  /** Para (ou de) uma conta sua que NÃO está no Fluxo: contam como saída/entrada. */
+  deFora: Set<string>;
+  /** As duas pontas entre contas suas que estão no Fluxo: neutras. */
+  internas: Set<string>;
+}
+
+/**
+ * Separa as transferências da pessoa para ela mesma (na conta, não no cartão):
+ *
+ * 1. Ida e volta: o mesmo valor saindo e entrando em até 5 dias (mesma conta ou
+ *    duas conectadas, as duas reconhecidas como "para si") — neutras.
+ * 2. Entre dois bancos conectados (Nubank → Caixa): a ponta reconhecida como
+ *    "para si" casa com a ponta oposta, do mesmo valor, em OUTRA conta conectada,
+ *    em até 3 dias, mesmo que aquele banco não diga que o outro lado é você
+ *    (desde que pareça transferência: Pix/TED/DOC). As duas viram internas.
+ * 3. O que sobra não tem o outro lado no Fluxo: veio de (ou foi para) uma conta
+ *    sua de fora, e conta.
+ *
+ * Os pares são um para um, do mais próximo no tempo para o mais distante.
+ */
+export function transferenciasProprias(transacoes: readonly Transacao[], ctx: ContextoClassificacao): TransferenciasProprias {
   const proprias = transacoes.filter(
-    (t) => t.tipoConta === 'CONTA' && !ehPixNoCreditoNaConta(t) && ehParaSiMesmo(t, ctx) && classificar(t, ctx) === 'TRANSFERENCIA',
+    (t) => ehContaBancaria(t) && !ehPixNoCreditoNaConta(t) && ehParaSiMesmo(t, ctx) && classificar(t, ctx) === 'TRANSFERENCIA',
   );
+  const usadas = new Set<string>();
+  const internas = new Set<string>();
+
+  // 1. Ida e volta entre pontas reconhecidas.
   const entradas = proprias.filter((t) => t.sentido === 'ENTRADA');
   const saidas = proprias.filter((t) => t.sentido === 'SAIDA');
-  const pares: { entrada: string; saida: string; distancia: number }[] = [];
+  const pares: { a: string; b: string; distancia: number }[] = [];
   for (const e of entradas) {
     for (const s of saidas) {
       if (s.valor !== e.valor || s.id === e.id) continue;
       const distancia = Math.abs(diasEntre(s.data, e.data));
-      if (distancia <= JANELA_IDA_E_VOLTA) pares.push({ entrada: e.id, saida: s.id, distancia });
+      if (distancia <= JANELA_IDA_E_VOLTA) pares.push({ a: e.id, b: s.id, distancia });
     }
   }
-  pares.sort((a, b) => a.distancia - b.distancia);
-  const pareadas = new Set<string>();
-  for (const p of pares) {
-    if (pareadas.has(p.entrada) || pareadas.has(p.saida)) continue;
-    pareadas.add(p.entrada);
-    pareadas.add(p.saida);
+  casar(pares, usadas, internas);
+
+  // 2. A ponta reconhecida com a ponta oposta em outro banco conectado.
+  const idsProprias = new Set(proprias.map((t) => t.id));
+  const outrasPontas = transacoes.filter(
+    (t) => ehContaBancaria(t) && !idsProprias.has(t.id) && !ehPixNoCreditoNaConta(t) && pareceTransferencia(t)
+      && ['RECEITA', 'DESPESA', 'TRANSFERENCIA'].includes(classificar(t, ctx)),
+  );
+  const paresEntreContas: { a: string; b: string; distancia: number }[] = [];
+  for (const p of proprias) {
+    if (usadas.has(p.id)) continue;
+    for (const o of outrasPontas) {
+      if (o.contaId === p.contaId || o.sentido === p.sentido || o.valor !== p.valor) continue;
+      const distancia = Math.abs(diasEntre(o.data, p.data));
+      if (distancia <= JANELA_ENTRE_CONTAS) paresEntreContas.push({ a: p.id, b: o.id, distancia });
+    }
   }
-  return new Set(proprias.filter((t) => !pareadas.has(t.id)).map((t) => t.id));
+  casar(paresEntreContas, usadas, internas);
+
+  // 3. Sem o outro lado no Fluxo: de fora. (As pontas da ida e volta não são
+  // "internas" para a classificação: já são neutras por serem para si.)
+  const deFora = new Set(proprias.filter((t) => !usadas.has(t.id)).map((t) => t.id));
+  return { deFora, internas };
+}
+
+function casar(pares: { a: string; b: string; distancia: number }[], usadas: Set<string>, internas: Set<string>): void {
+  pares.sort((x, y) => x.distancia - y.distancia);
+  for (const p of pares) {
+    if (usadas.has(p.a) || usadas.has(p.b)) continue;
+    usadas.add(p.a);
+    usadas.add(p.b);
+    internas.add(p.a);
+    internas.add(p.b);
+  }
+}
+
+/** Conta corrente ou poupança (a da Caixa chega como poupança): tudo menos o cartão. */
+function ehContaBancaria(t: Transacao): boolean {
+  return t.tipoConta !== 'CARTAO';
+}
+
+function pareceTransferencia(t: Transacao): boolean {
+  return MEIOS_DE_TRANSFERENCIA.has((t.meioPagamento ?? '').toUpperCase()) || PARECE_TRANSFERENCIA.test(normalizar(t.descricao));
 }
 
 /**
@@ -212,7 +286,7 @@ export function transferenciasDeFora(transacoes: readonly Transacao[], ctx: Cont
  * Vira "Salário" — a não ser que uma regra do usuário diga outra coisa.
  */
 function rendaPropria(t: Transacao, ctx: ContextoClassificacao): boolean {
-  if (t.tipoConta !== 'CONTA' || t.sentido !== 'ENTRADA') return false;
+  if (!ehContaBancaria(t) || t.sentido !== 'ENTRADA') return false;
   if (ctx.transferenciasDeFora?.has(t.id)) return true;
   const documento = apenasDigitosEMascara(t.contraparteDocumento);
   if (documento.length !== 14 || ctx.documentosDoTitular.some((d) => mesmoDocumento(t.contraparteDocumento, d))) return false;

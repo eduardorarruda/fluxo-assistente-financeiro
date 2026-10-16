@@ -93,7 +93,8 @@ function panorama({ financas }: Dependencias): Definicao {
     descricao:
       'Situação financeira de hoje: data de hoje, mês atual, meses com dados, saldos das contas e caixinhas, patrimônio ' +
       '(contas + caixinhas + investimentos − fatura aberta), cartões (limite, disponível, fatura aberta), o resumo do mês ' +
-      'atual, as próximas contas recorrentes e os alertas. Use primeiro, para se situar antes de qualquer análise.',
+      'atual, as próximas contas recorrentes e os alertas (só os que a pessoa não dispensou no sino). Use primeiro, para se ' +
+      'situar antes de qualquer análise.',
     entrada: z.object({}),
     rotulo: () => 'Panorama das finanças',
     executar: () => {

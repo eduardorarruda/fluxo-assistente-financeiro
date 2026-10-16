@@ -1,14 +1,15 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router';
+import { useState } from 'react';
+import { useLocation } from 'react-router';
 import { api } from '../api/cliente';
-import { useEscrita, useEstado, useVisaoGeral } from '../api/consultas';
+import { useEscrita, useEstado } from '../api/consultas';
 import { Icone } from '../icones/Icone';
 import { haQuantoTempo, mesSemAno, nomeDoMes, somarMeses } from '../util/formato';
 import { usePreferencias } from '../util/preferencias';
 import { useMes } from '../util/useMes';
 import { useAvisar } from './Avisos';
 import { ROTAS } from './Navegacao';
+import { Sino } from './Sino';
 
 const TITULOS: Record<string, string> = { '/conexoes': 'Conexões', '/ajustes': 'Ajustes' };
 
@@ -52,66 +53,6 @@ function SeletorDeMes() {
           Hoje
         </motion.button>
       )}
-    </div>
-  );
-}
-
-function Sino() {
-  const { mesAtual } = useMes();
-  const { data } = useVisaoGeral(mesAtual);
-  const [aberto, setAberto] = useState(false);
-  const navegar = useNavigate();
-  const ref = useRef<HTMLDivElement>(null);
-  const alertas = data?.alertas ?? [];
-  const graves = alertas.filter((a) => a.gravidade !== 'INFO').length;
-
-  useEffect(() => {
-    if (!aberto) return;
-    const fora = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setAberto(false);
-    window.addEventListener('mousedown', fora);
-    return () => window.removeEventListener('mousedown', fora);
-  }, [aberto]);
-
-  return (
-    <div className="sino" ref={ref}>
-      <motion.button
-        type="button"
-        className="botao-icone"
-        aria-label={`Alertas (${alertas.length})`}
-        onClick={() => setAberto((a) => !a)}
-        animate={graves ? { rotate: [0, -14, 12, -8, 5, 0] } : {}}
-        transition={{ duration: 0.9, repeat: graves ? Infinity : 0, repeatDelay: 6 }}
-      >
-        <Icone nome="sino" tamanho={18} />
-        {alertas.length > 0 && <span className={`sino__contador ${graves ? 'sino__contador--grave' : ''}`}>{alertas.length}</span>}
-      </motion.button>
-      <AnimatePresence>
-        {aberto && (
-          <motion.div className="popover" initial={{ opacity: 0, y: -8, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.98 }} transition={{ type: 'spring', stiffness: 500, damping: 34 }}>
-            <h3 className="popover__titulo">Precisa de atenção</h3>
-            {alertas.length === 0 && <p className="popover__vazio">Tudo em ordem por aqui.</p>}
-            {alertas.map((a, i) => (
-              <motion.button
-                type="button"
-                key={a.id}
-                className={`alerta alerta--${a.gravidade.toLowerCase()}`}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0, transition: { delay: i * 0.04 } }}
-                onClick={() => {
-                  setAberto(false);
-                  navegar(a.destino);
-                }}
-              >
-                <span className="alerta__ponto" />
-                <span>
-                  <strong>{a.titulo}</strong>
-                  <small>{a.detalhe}</small>
-                </span>
-              </motion.button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

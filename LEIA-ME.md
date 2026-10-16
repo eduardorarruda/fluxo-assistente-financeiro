@@ -161,6 +161,20 @@ chega o alerta de atraso, todo dia no mesmo horário, até o Fluxo ver o pagamen
 O ID, a chave secreta e a autorização ficam em `data/google/` (só você lê). **Desconectar** devolve a
 autorização ao Google e, se você marcar, apaga a agenda Fluxo.
 
+## Avisos (o sino)
+
+O sino do topo junta o que pede atenção: conta a pagar e fatura perto do vencimento ou atrasadas, orçamento
+estourando, assinatura que ficou mais cara, banco ou Google Agenda sem atualizar. Os críticos também aparecem
+em faixa vermelha na Visão geral.
+
+- **Dispensar:** passe o mouse num aviso (ou chegue nele pelo Tab) e clique no **X**. Ele some do sino, da
+  faixa e do que o assistente vê. **Marcar todos como vistos** dispensa todos de uma vez.
+- **Volta se piorar:** a conta que "vence amanhã" e foi dispensada reaparece quando atrasa; o orçamento "perto
+  do limite" reaparece quando estoura. Mudar só o texto ("vence em 3 dias" → "em 2 dias") não traz de volta.
+- **Volta se o problema voltar:** quando o aviso se resolve (conta paga, Google reconectado), a dispensa é
+  esquecida — se acontecer de novo, ele avisa de novo.
+- **Ver de novo:** no rodapé do sino, **Mostrar N dispensados** traz de volta tudo o que foi dispensado.
+
 ## As regras de dinheiro
 
 - **Nada conta duas vezes.** Pagar a fatura não é gasto (as compras já contaram). Guardar na

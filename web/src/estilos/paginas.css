@@ -45,10 +45,34 @@
   color: var(--critico);
   background: var(--critico-suave);
   border: 1px solid color-mix(in srgb, var(--critico) 30%, transparent);
+  /* Ao ser dispensada, a faixa encolhe: o recorte não deixa o texto vazar. */
+  overflow: hidden;
 }
 
 .faixa-alerta span {
+  flex: 1;
   color: var(--texto);
+}
+
+.faixa-alerta__dispensar {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin: -4px -6px -4px 0;
+  border-radius: 9px;
+  color: var(--texto-3);
+  transition: color var(--t-rapida), background var(--t-rapida);
+}
+
+.faixa-alerta__dispensar:hover {
+  color: var(--critico);
+  background: color-mix(in srgb, var(--critico) 14%, transparent);
+}
+
+.faixa-alerta__dispensar:focus-visible {
+  outline-offset: -2px;
 }
 
 .aviso-inline {

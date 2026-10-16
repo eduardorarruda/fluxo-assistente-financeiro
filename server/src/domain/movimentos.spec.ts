@@ -117,3 +117,76 @@ describe('transferências entre contas suas: contam quando cruzam a fronteira do
     expect(montar([loja]).get('l')?.categoriaId).not.toBe('salario');
   });
 });
+
+describe('transferências entre dois bancos conectados (Nubank ↔ Caixa)', () => {
+  const titular = { documentosDoTitular: ['12345678900'], nomesDoTitular: ['fulano de tal'] };
+  const nubank = (p: Partial<Parameters<typeof transacao>[0]>) =>
+    transacao({ contaId: 'nubank', contraparteNome: 'FULANO DE TAL', contraparteDocumento: '123.456.789-00', meioPagamento: 'PIX', categoriaProvedor: 'Same person transfer', ...p });
+  // A Caixa nem sempre diz que o outro lado é você: sem nome nem documento da contraparte.
+  const caixa = (p: Partial<Parameters<typeof transacao>[0]>) => transacao({ contaId: 'caixa', meioPagamento: 'PIX', ...p });
+  const montar = (ts: Parameters<typeof montarMovimentos>[0]) => new Map(montarMovimentos(ts, titular, [], new Map()).map((m) => [m.id, m]));
+
+  it('Nubank → Caixa: as duas pontas são neutras, mesmo a Caixa não dizendo que é você', () => {
+    const ms = montar([
+      nubank({ id: 'sai-nu', sentido: 'SAIDA', valor: 242797, data: '2026-10-05', descricao: 'Transferência enviada pelo Pix|Fulano de Tal' }),
+      caixa({ id: 'entra-cx', sentido: 'ENTRADA', valor: 242797, data: '2026-10-05', descricao: 'PIX RECEBIDO' }),
+    ]);
+    expect(ms.get('sai-nu')?.natureza).toBe('TRANSFERENCIA');
+    expect(ms.get('entra-cx')?.natureza).toBe('TRANSFERENCIA');
+  });
+
+  it('Caixa → Nubank no dia seguinte (TED): neutras; o que entra na Caixa de terceiro conta', () => {
+    const ms = montar([
+      caixa({ id: 'salario', sentido: 'ENTRADA', valor: 500000, data: '2026-10-01', descricao: 'CRED SALARIO ACME LTDA', meioPagamento: null }),
+      caixa({ id: 'sai-cx', sentido: 'SAIDA', valor: 300000, data: '2026-10-01', descricao: 'TED ENVIADA', meioPagamento: 'TED' }),
+      nubank({ id: 'entra-nu', sentido: 'ENTRADA', valor: 300000, data: '2026-10-02', descricao: 'Transferência Recebida|FULANO DE TAL', meioPagamento: 'TED' }),
+    ]);
+    expect(ms.get('sai-cx')?.natureza).toBe('TRANSFERENCIA');
+    expect(ms.get('entra-nu')?.natureza).toBe('TRANSFERENCIA');
+    expect(ms.get('salario')?.natureza).toBe('RECEITA');
+  });
+
+  it('do mesmo valor mas não parece transferência (compra no débito): não casa', () => {
+    const ms = montar([
+      nubank({ id: 'entra-nu', sentido: 'ENTRADA', valor: 15000, data: '2026-10-02', descricao: 'Transferência Recebida|FULANO DE TAL' }),
+      caixa({ id: 'compra', sentido: 'SAIDA', valor: 15000, data: '2026-10-02', descricao: 'COMPRA CARTAO DEBITO MERCADO', meioPagamento: null }),
+    ]);
+    expect(ms.get('compra')?.natureza).toBe('DESPESA');
+    expect(ms.get('entra-nu')?.natureza).toBe('RECEITA'); // veio de conta sua fora do Fluxo
+  });
+
+  it('a outra ponta longe demais (mais de 3 dias): cada uma conta por si', () => {
+    const ms = montar([
+      nubank({ id: 'sai-nu', sentido: 'SAIDA', valor: 10000, data: '2026-10-01', descricao: 'Transferência enviada pelo Pix|Fulano de Tal' }),
+      caixa({ id: 'entra-cx', sentido: 'ENTRADA', valor: 10000, data: '2026-10-08', descricao: 'PIX RECEBIDO' }),
+    ]);
+    expect(ms.get('sai-nu')?.natureza).toBe('DESPESA');
+    expect(ms.get('entra-cx')?.natureza).toBe('RECEITA');
+  });
+
+  it('um para um: dois Pix iguais do Nubank e uma entrada na Caixa deixam um contando', () => {
+    const ms = montar([
+      nubank({ id: 'a', sentido: 'SAIDA', valor: 5000, data: '2026-10-03', descricao: 'Transferência enviada pelo Pix|Fulano de Tal' }),
+      nubank({ id: 'b', sentido: 'SAIDA', valor: 5000, data: '2026-10-06', descricao: 'Transferência enviada pelo Pix|Fulano de Tal' }),
+      caixa({ id: 'cx', sentido: 'ENTRADA', valor: 5000, data: '2026-10-03', descricao: 'PIX RECEBIDO' }),
+    ]);
+    expect([ms.get('a')?.natureza, ms.get('cx')?.natureza]).toEqual(['TRANSFERENCIA', 'TRANSFERENCIA']);
+    expect(ms.get('b')?.natureza).toBe('DESPESA');
+  });
+});
+
+describe('poupança conectada (a Caixa chega como POUPANCA)', () => {
+  const titular = { documentosDoTitular: ['12345678900'], nomesDoTitular: ['fulano de tal'] };
+  const montar = (ts: Parameters<typeof montarMovimentos>[0]) => new Map(montarMovimentos(ts, titular, [], new Map()).map((m) => [m.id, m]));
+
+  it('salário entra na poupança e é passado ao Nubank: conta UMA vez (na poupança), a transferência é neutra', () => {
+    const ms = montar([
+      transacao({ id: 'salario', contaId: 'caixa', tipoConta: 'POUPANCA', sentido: 'ENTRADA', valor: 419905, data: '2026-06-08', descricao: 'PIX RECEBIDO', contraparteNome: 'ACME SISTEMAS', meioPagamento: 'PIX' }),
+      transacao({ id: 'sai-cx', contaId: 'caixa', tipoConta: 'POUPANCA', sentido: 'SAIDA', valor: 419905, data: '2026-06-09', descricao: 'PIX ENVIADO', meioPagamento: 'PIX' }),
+      transacao({ id: 'entra-nu', contaId: 'nubank', sentido: 'ENTRADA', valor: 419905, data: '2026-06-09', descricao: 'Transferência Recebida|FULANO DE TAL', contraparteNome: 'FULANO DE TAL', contraparteDocumento: '123.456.789-00', meioPagamento: 'PIX' }),
+    ]);
+    expect(ms.get('salario')?.natureza).toBe('RECEITA');
+    expect(ms.get('sai-cx')?.natureza).toBe('TRANSFERENCIA');
+    expect(ms.get('entra-nu')?.natureza).toBe('TRANSFERENCIA');
+  });
+});

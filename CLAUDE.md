@@ -23,7 +23,10 @@ npm run build && ./fluxo.sh --servidor        # production path, no window
   Card bill payments, caixinha moves, investments and transfers between the user's own accounts never do —
   as long as both ends are in Fluxo. A self-transfer whose other side is outside Fluxo (e.g., salary deposited
   to another bank account, then sent to Nubank) is RECEITA (`salario`) / DESPESA; only round trips (same value
-  out and back within 5 days) or pairs across connected accounts stay TRANSFERENCIA (`transferenciasDeFora`).
+  out and back within 5 days) or pairs across connected accounts stay TRANSFERENCIA (`transferenciasProprias`
+  in domain/movimentos.ts). A recognized self-transfer also pairs with the opposite side in ANOTHER connected
+  bank account (same value, ≤3 days, looks like Pix/TED/DOC) even when that bank doesn't name the holder
+  (e.g. Nubank → Caixa): both sides become neutral (`transferenciasInternas`).
   A Pix from the user's own company (CNPJ whose name contains the holder's name) is also classified as `salario`.
 - Keyword detection in `domain/classificacao.ts` is anchored to the start of the description and
   skipped for third-party Pix/TED: the counterparty controls that text. Exception: prefixes the

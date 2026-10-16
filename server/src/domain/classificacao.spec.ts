@@ -327,3 +327,18 @@ describe('Pix no crédito: a cobrança no cartão com par na conta', () => {
     expect(natureza(ms)).toMatchObject({ pf: 'TRANSFERENCIA', cob: 'TRANSFERENCIA' });
   });
 });
+
+describe('FGTS', () => {
+  const ctxF = { documentosDoTitular: [], nomesDoTitular: [] };
+  it('crédito do FGTS na conta é receita, mesmo o provedor chamando de "Pension" (previdência)', () => {
+    const fgts = transacao({ tipoConta: 'POUPANCA', sentido: 'ENTRADA', descricao: 'CREDITO FGTS', categoriaProvedor: 'Pension', categoriaProvedorId: '03070000', meioPagamento: 'OTHER' });
+    expect(classificar(fgts, ctxF)).toBe('RECEITA');
+    expect(classificar({ ...fgts, descricao: 'SAQUE FGTS' }, ctxF)).toBe('RECEITA');
+  });
+
+  it('"FGTS" no meio do texto de um Pix de terceiro não vira receita por isso', () => {
+    const pix = transacao({ sentido: 'SAIDA', descricao: 'Pix enviado credito fgts', contraparteNome: 'Fulano', meioPagamento: 'PIX' });
+    expect(classificar(pix, ctxF)).toBe('DESPESA');
+  });
+});
+

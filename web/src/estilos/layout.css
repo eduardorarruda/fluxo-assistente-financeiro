@@ -399,17 +399,114 @@
   color: var(--texto-3);
 }
 
+.popover:focus {
+  /* Só recebe o foco para ele não se perder quando a última linha some. */
+  outline: none;
+}
+
+.alertas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* A linha encolhe ao ser dispensada: o recorte não deixa o conteúdo vazar. */
 .alerta {
-  display: flex;
-  gap: 12px;
-  width: 100%;
-  padding: 10px 12px;
+  position: relative;
+  overflow: hidden;
   border-radius: 12px;
-  text-align: left;
   transition: background var(--t-rapida);
 }
 
-.alerta:hover {
+.alerta:hover,
+.alerta:focus-within {
+  background: var(--superficie-2);
+}
+
+.alerta__abrir {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  /* À direita, o espaço do X. */
+  padding: 10px 44px 10px 12px;
+  border-radius: inherit;
+  text-align: left;
+}
+
+.alerta__abrir:focus-visible,
+.alerta__dispensar:focus-visible {
+  outline-offset: -2px;
+}
+
+.alerta__dispensar {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: var(--texto-3);
+  opacity: 0;
+  transition: opacity var(--t-rapida), color var(--t-rapida), background var(--t-rapida);
+}
+
+/* Aparece ao passar o mouse ou ao chegar pelo teclado; em tela de toque, sempre. */
+.alerta:hover .alerta__dispensar,
+.alerta:focus-within .alerta__dispensar,
+.alerta__dispensar:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .alerta__dispensar {
+    opacity: 1;
+  }
+}
+
+.alerta__dispensar:hover {
+  color: var(--texto);
+  background: var(--superficie-3);
+}
+
+.popover__rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 8px 4px 0;
+  border-top: 1px solid var(--borda);
+}
+
+.popover__restaurar,
+.popover__todos {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: color var(--t-rapida), background var(--t-rapida);
+}
+
+.popover__restaurar {
+  color: var(--texto-3);
+}
+
+.popover__restaurar:hover:not(:disabled) {
+  color: var(--texto);
+}
+
+.popover__todos {
+  margin-left: auto;
+  color: var(--marca-clara);
+}
+
+.popover__todos:hover {
   background: var(--superficie-2);
 }
 

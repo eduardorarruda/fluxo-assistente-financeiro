@@ -16,6 +16,12 @@ export interface ContextoClassificacao {
    * Ver `transferenciasDeFora` em movimentos.ts.
    */
   transferenciasDeFora?: ReadonlySet<string>;
+  /**
+   * As duas pontas de uma transferência entre contas suas que estão AMBAS no
+   * Fluxo (ex.: Nubank → Caixa), mesmo quando um dos bancos não diz que o outro
+   * lado é você. Sempre neutras. Ver `transferenciasProprias` em movimentos.ts.
+   */
+  transferenciasInternas?: ReadonlySet<string>;
 }
 
 /*
@@ -40,6 +46,8 @@ const CREDITO_PARCELAMENTO = /^credito de parcelamento/;
 // Pix no crédito: o cartão põe o valor na conta, de onde sai o Pix (e cobra valor + IOF/juros).
 const PIX_NO_CREDITO_NA_CONTA = /^valor adicionado na conta por cartao de credito/;
 const REEMBOLSO_PIX = /^reembolso recebido pelo pix/;
+/** Saque do FGTS caindo na conta (texto do próprio banco, no começo): dinheiro novo, não investimento — o provedor chama de "Pension". */
+const CREDITO_FGTS = /^(credito|cred\.?|saque)\s+(do\s+|de\s+)?fgts/;
 /** Sufixo de parcela que o cartão põe depois do nome ("Fulano 3/3"). */
 const SUFIXO_PARCELA = /^( \d{1,3}\/\d{1,3})?$/;
 
@@ -158,6 +166,8 @@ export function classificar(t: Transacao, ctx: ContextoClassificacao): Natureza 
     return 'PAGAMENTO_FATURA';
   }
 
+  if (t.sentido === 'ENTRADA' && !terceiro && CREDITO_FGTS.test(descricao)) return 'RECEITA';
+
   if (ehProventoNoProvedor(t) || (!terceiro && RENDIMENTO.test(descricao))) {
     return t.sentido === 'ENTRADA' ? 'RECEITA' : 'DESPESA';
   }
@@ -165,6 +175,7 @@ export function classificar(t: Transacao, ctx: ContextoClassificacao): Natureza 
   if (ehInvestimentoNoProvedor(t) || (!terceiro && CAIXINHA.test(descricao))) return 'INVESTIMENTO';
 
   // Entre contas suas: só é neutra quando as duas pontas estão no Fluxo.
+  if (ctx.transferenciasInternas?.has(t.id)) return 'TRANSFERENCIA';
   if (ehParaSiMesmo(t, ctx) && !ctx.transferenciasDeFora?.has(t.id)) return 'TRANSFERENCIA';
 
   return t.sentido === 'ENTRADA' ? 'RECEITA' : 'DESPESA';

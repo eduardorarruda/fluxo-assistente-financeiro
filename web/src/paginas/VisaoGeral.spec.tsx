@@ -1,5 +1,7 @@
-import { screen, waitFor } from '@testing-library/react';
-import { renderizar } from '../testes/ambiente';
+import { screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { servidorDeAlertas } from '../testes/alertas-falsos';
+import { montarComProvedores, renderizar } from '../testes/ambiente';
 import estado from '../testes/fixtures/estado.json';
 import visaoGeral from '../testes/fixtures/visao-geral.json';
 import { reais } from '../util/formato';
@@ -36,5 +38,17 @@ describe('VisaoGeral · cartão', () => {
     renderizar(<VisaoGeral />, com(fechada('2026-08-11')));
     await screen.findByText('Dívida no cartão');
     await waitFor(() => expect(screen.queryByText(/fechada:/)).not.toBeInTheDocument());
+  });
+});
+
+describe('VisaoGeral · faixa de aviso crítico', () => {
+  it('tem o X de dispensar: a faixa some e o servidor guarda a dispensa', async () => {
+    const { pedidos } = servidorDeAlertas();
+    const usuario = userEvent.setup();
+    montarComProvedores(<VisaoGeral />);
+    const faixa = (await screen.findByText(/Google Agenda desconectado/)).closest('.faixa-alerta') as HTMLElement;
+    await usuario.click(within(faixa).getByRole('button', { name: 'Dispensar este aviso' }));
+    expect(pedidos).toEqual([{ url: '/api/alertas/dispensar', corpo: { ids: ['google:reconectar'] }, xFluxo: '1' }]);
+    await waitFor(() => expect(screen.queryByText(/Google Agenda desconectado/)).not.toBeInTheDocument());
   });
 });

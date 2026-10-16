@@ -66,6 +66,13 @@ export const meta = z.object({
 
 export const configuracoes = z.object({ caixinhasNoSaldo: z.boolean().optional() });
 
+/**
+ * Avisos a dispensar, pelos ids que o sino mostra. Sem a regex de `id`: a chave de
+ * uma recorrência (`aumento:<chave>`) pode ter espaço. É só comparada com os avisos
+ * de agora (id desconhecido é ignorado) e a gravidade quem decide é o servidor.
+ */
+export const dispensaDeAlertas = z.strictObject({ ids: z.array(z.string().min(1).max(300)).min(1).max(200) });
+
 /** Ids da Pluggy são UUID; a demonstração tem o seu. Nada de "..", barras ou afins indo para a URL da API. */
 export const idPluggy = z.uuid('identificador de conexão inválido');
 export const idConexao = z.union([z.literal('demo-nubank'), idPluggy]);

@@ -1,7 +1,9 @@
-import { motion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useRef } from 'react';
 import { useNavigate } from 'react-router';
-import { useContasAPagar, useEstado, useVisaoGeral } from '../api/consultas';
-import type { Movimento, VisaoGeral as Dados } from '../api/tipos';
+import { useContasAPagar, useDispensaDeAlertas, useEstado, useVisaoGeral } from '../api/consultas';
+import type { Alerta, Movimento, VisaoGeral as Dados } from '../api/tipos';
+import { useAvisar } from '../componentes/Avisos';
 import { Anel, Barra, Carregando, Cartao, CategoriaIcone, Delta, Pagina, Selo, surgir, Vazio } from '../componentes/ui';
 import { Valor } from '../componentes/Valor';
 import { BarrasMensais } from '../graficos/BarrasMensais';
@@ -311,6 +313,50 @@ function Ultimos({ movimentos, hoje }: { movimentos: Movimento[]; hoje: string }
   );
 }
 
+/** Faixas dos avisos críticos, cada uma com o X de dispensar (o mesmo do sino). */
+function FaixasCriticas({ alertas }: { alertas: Alerta[] }) {
+  const dispensa = useDispensaDeAlertas();
+  const avisar = useAvisar();
+  const botoes = useRef(new Map<string, HTMLButtonElement>());
+  const dispensar = (i: number) => {
+    const vizinha = alertas[i + 1] ?? alertas[i - 1];
+    dispensa.mutate({ tipo: 'dispensar', ids: [alertas[i]!.id] }, { onError: (e) => avisar('erro', `Não consegui dispensar: ${(e as Error).message}`) });
+    if (vizinha) botoes.current.get(vizinha.id)?.focus();
+  };
+  return (
+    <AnimatePresence>
+      {alertas.map((a, i) => (
+        <motion.div
+          key={a.id}
+          // Dentro do AnimatePresence a faixa não herda a cascata da página: os estados vão explícitos.
+          variants={surgir}
+          initial="inicial"
+          animate="visivel"
+          className="faixa-alerta"
+          // Some encolhendo; a margem negativa engole o espaço entre as faixas para nada pular.
+          exit={{ opacity: 0, height: 0, paddingTop: 0, paddingBottom: 0, marginBottom: -20, transition: { duration: 0.24, ease: [0.4, 0, 0.2, 1] } }}
+        >
+          <Icone nome="alerta" tamanho={18} />
+          <span><strong>{a.titulo}.</strong> {a.detalhe}</span>
+          <button
+            type="button"
+            className="faixa-alerta__dispensar"
+            aria-label="Dispensar este aviso"
+            title="Dispensar este aviso"
+            ref={(el) => {
+              if (el) botoes.current.set(a.id, el);
+              else botoes.current.delete(a.id);
+            }}
+            onClick={() => dispensar(i)}
+          >
+            <Icone nome="fechar" tamanho={15} />
+          </button>
+        </motion.div>
+      ))}
+    </AnimatePresence>
+  );
+}
+
 export function VisaoGeral() {
   const { mes, mesAtual, definirMes } = useMes();
   const { data: d, isLoading, error } = useVisaoGeral(mes);
@@ -321,12 +367,7 @@ export function VisaoGeral() {
 
   return (
     <Pagina>
-      {criticos.map((a) => (
-        <motion.div key={a.id} variants={surgir} className="faixa-alerta">
-          <Icone nome="alerta" tamanho={18} />
-          <span><strong>{a.titulo}.</strong> {a.detalhe}</span>
-        </motion.div>
-      ))}
+      <FaixasCriticas alertas={criticos} />
       <div className="grade grade--12-8">
         <Patrimonio d={d} />
         <CartaoDeCredito d={d} />

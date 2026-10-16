@@ -128,6 +128,12 @@ export interface Alerta {
   destino: string;
 }
 
+/** Resposta de `POST /api/alertas/dispensar|dispensar-todos|restaurar`: o que aparece + quantos estão dispensados. */
+export interface SituacaoDosAlertas {
+  alertas: Alerta[];
+  dispensados: number;
+}
+
 export interface FaturaMes {
   contaId: string;
   mes: Mes;
@@ -215,6 +221,8 @@ export interface VisaoGeral {
   orcamento: LinhaOrcamento[];
   proximas: Recorrencia[];
   alertas: Alerta[];
+  /** Quantos avisos a pessoa dispensou (o "X" do sino) e que continuam valendo. */
+  alertasDispensados: number;
   ultimos: Movimento[];
 }
 

@@ -8,7 +8,7 @@ import { Financas } from '../servicos/financas';
 import { PluggyNaoConfigurada, Sincronizador } from '../servicos/sincronizador';
 import { ErroDeIntegracao } from './erros';
 import {
-  ajusteMovimento, categoria, configuracoes, consultaMes, filtroMovimentos, id, idConexao, limiteOrcamento, meta, novaConexao,
+  ajusteMovimento, categoria, configuracoes, consultaMes, dispensaDeAlertas, filtroMovimentos, id, idConexao, limiteOrcamento, meta, novaConexao,
   novaRegra, remocao, sincronizar, tokenConexao, Validar,
 } from './validacao';
 import { Vigia } from './vigia';
@@ -56,6 +56,26 @@ export class EstadoControlador {
   @Get('alertas')
   alertas() {
     return this.financas.alertas();
+  }
+
+  /** O "X" do sino: some enquanto o aviso for o mesmo; volta se piorar. */
+  @Post('alertas/dispensar')
+  @HttpCode(200)
+  dispensarAlertas(@Body(new Validar(dispensaDeAlertas)) corpo: z.infer<typeof dispensaDeAlertas>) {
+    return this.financas.dispensarAlertas(corpo.ids);
+  }
+
+  @Post('alertas/dispensar-todos')
+  @HttpCode(200)
+  dispensarTodosOsAlertas() {
+    return this.financas.dispensarTodosOsAlertas();
+  }
+
+  /** "Mostrar N dispensados": tudo o que foi dispensado volta a aparecer. */
+  @Post('alertas/restaurar')
+  @HttpCode(200)
+  restaurarAlertas() {
+    return this.financas.restaurarAlertas();
   }
 
   @Get('categorias')
