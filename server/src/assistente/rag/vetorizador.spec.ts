@@ -179,4 +179,11 @@ describe.skipIf(process.env.FLUXO_TESTAR_MODELO !== '1')('VetorizadorLocal com o
     expect(Math.hypot(...consulta!)).toBeCloseTo(1, 3);
     expect(cosseno(consulta!, restaurante!)).toBeGreaterThan(cosseno(consulta!, luz!));
   });
+
+  it('depois de baixado, carrega só do disco (sem rede), como na indexação', { timeout: 120_000 }, async () => {
+    await new VetorizadorLocal(pasta).preparar();
+    const soDoDisco = new VetorizadorLocal(pasta);
+    const [vetor] = await soDoDisco.vetorizar(['Mercado'], 'documento');
+    expect(vetor).toHaveLength(384);
+  });
 });

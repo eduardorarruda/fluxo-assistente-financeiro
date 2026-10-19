@@ -69,7 +69,10 @@ export const carregarComTransformers: CarregadorDeModelo = async (modelo, opcoes
   const { env, pipeline } = await import('@huggingface/transformers');
   env.cacheDir = opcoes.pasta;
   env.useFSCache = true;
-  env.allowLocalModels = false;
+  // O cache grava em `<pasta>/<modelo>/<arquivo>`, o mesmo formato de um modelo
+  // local: sem rede, o transformers 4 exige uma fonte ligada e lê dali.
+  env.localModelPath = opcoes.pasta;
+  env.allowLocalModels = true;
   env.allowRemoteModels = opcoes.permitirRede;
   const extrator = await pipeline('feature-extraction', modelo, {
     dtype: 'q8',
