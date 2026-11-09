@@ -99,7 +99,13 @@ export function Ajustes() {
         </Cartao>
         <Cartao titulo="Sobre o Fluxo" icone="info">
           <ul className="como-ler">
-            <li><Icone nome="cadeado" tamanho={16} /> <span>Banco de dados local: <code>data/fluxo.db</code> (SQLite). Para fazer backup, copie esse arquivo.</span></li>
+            <li><Icone nome="cadeado" tamanho={16} /> <span>Banco de dados local: <code>data/fluxo.db</code> (SQLite). Para fazer backup, copie esse arquivo. Antes de cada atualização que muda o banco, o Fluxo guarda uma cópia em <code>data/copias/</code>.</span></li>
+            <li>
+              <Icone nome="extrato" tamanho={16} />{' '}
+              <span>
+                <a href="/api/exportacao" download="fluxo-meus-dados.json">Baixar todos os meus dados (JSON)</a>: movimentos, ajustes, regras, orçamentos, metas, contas a pagar e conversas. Chaves e senhas não vão no arquivo.
+              </span>
+            </li>
             <li><Icone nome="plug" tamanho={16} /> <span>Pluggy {estado.pluggyConfigurada ? 'configurada' : 'não configurada'} · {estado.conexoes.length} conexão(ões).</span></li>
             <li><Icone nome="fluxo" tamanho={16} /> <span>NestJS + React, um processo só. Código em <code>server/</code> e <code>web/</code>.</span></li>
           </ul>

@@ -30,6 +30,8 @@ import { RELOGIO, RelogioModule, type Relogio } from './relogio';
 import { ContasAPagar } from './servicos/contas-a-pagar';
 import { Financas } from './servicos/financas';
 import { PROVEDOR_PLUGGY, Sincronizador } from './servicos/sincronizador';
+import { ExportacaoControlador } from './http/exportacao.controlador';
+import { Exportador } from './servicos/exportacao';
 
 /**
  * Porta do Vite, só em desenvolvimento: as chamadas dele passam pelo proxy
@@ -75,7 +77,7 @@ function lerConfigSemFalhar(): Config | null {
     ...servirFront(),
   ],
   controllers: [
-    EntradaControlador,
+    EntradaControlador, ExportacaoControlador,
     EstadoControlador, PainelControlador, MovimentosControlador, RegrasControlador, OrcamentoControlador,
     MetasControlador, ConexoesControlador, ContasAPagarControlador,
     ...CONTROLADORES_ASSISTENTE,
@@ -105,6 +107,7 @@ function lerConfigSemFalhar(): Config | null {
       useFactory: (config: Config) =>
         config.pluggy ? new ProvedorPluggy(new PluggyClient({ clientId: config.pluggy.clientId, clientSecret: config.pluggy.clientSecret })) : null,
     },
+    Exportador,
     { provide: APP_FILTER, useClass: FiltroDeErros },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
