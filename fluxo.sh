@@ -37,9 +37,24 @@ if [[ -z "$NODE" ]]; then
 fi
 export PATH="$(dirname "$NODE"):$PATH"
 
-if [[ ! -f "$PASTA/server/dist/main.js" || ! -f "$PASTA/web/dist/index.html" ]]; then
-  avisar "Preparando o Fluxo pela primeira vez (uns segundos)…"
-  (cd "$PASTA" && npm run build >>"$LOG" 2>&1) || { avisar "A compilação falhou. Veja $LOG"; exit 1; }
+# Código mais novo que o build (depois de um git pull): compila de novo, senão rodaria a versão velha.
+desatualizado() {
+  [[ ! -f "$PASTA/server/dist/main.js" || ! -f "$PASTA/web/dist/index.html" ]] && return 0
+  [[ -n "$(find "$PASTA/server/src" "$PASTA/server/drizzle" "$PASTA/web/src" "$PASTA/web/index.html" "$PASTA/package-lock.json" \
+          -newer "$PASTA/server/dist/main.js" -print -quit 2>/dev/null)" ]]
+}
+
+if desatualizado && ! curl -sf -m 1 "$ENDERECO/api/saude" >/dev/null 2>&1; then
+  avisar "Preparando o Fluxo (uns segundos)…"
+  mkdir -p "$(dirname "$LOG")"
+  # Se a compilação nova falhar e ainda houver um build anterior, tenta abrir ele (e avisa).
+  (cd "$PASTA" && npm run build >>"$LOG" 2>&1) || {
+    if [[ -f "$PASTA/server/dist/main.js" ]]; then
+      avisar "A compilação nova falhou; abrindo a versão anterior. Veja $LOG"
+    else
+      avisar "A compilação falhou. Veja $LOG"; exit 1
+    fi
+  }
 fi
 
 de_pe() { curl -sf -m 1 "$ENDERECO/api/saude" >/dev/null 2>&1; }
