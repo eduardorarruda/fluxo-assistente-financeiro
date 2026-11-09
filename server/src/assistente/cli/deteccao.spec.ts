@@ -34,6 +34,30 @@ describe('validarCaminho', () => {
     expect(validarCaminho(join(raiz, 'gemini'), 'gemini')).toMatch(/execu/);
     expect(validarCaminho(executavel(join(raiz, 'bin', 'bash')), 'claude')).toMatch(/claude/);
   });
+
+  it('recusa programa que outro usuário do computador poderia trocar (arquivo ou pasta graváveis por todos)', () => {
+    const solto = executavel(join(raiz, 'aberto', 'claude'));
+    chmodSync(solto, 0o777);
+    expect(validarCaminho(solto, 'claude')).toMatch(/outros usuários/);
+    const naPastaAberta = executavel(join(raiz, 'pasta-aberta', 'claude'));
+    chmodSync(join(raiz, 'pasta-aberta'), 0o777);
+    expect(validarCaminho(naPastaAberta, 'claude')).toMatch(/outros usuários/);
+  });
+
+  it('aceita pasta gravável pelo seu próprio grupo (umask 002 com grupo por usuário)', () => {
+    const meu = executavel(join(raiz, 'npm-global', 'claude'));
+    chmodSync(join(raiz, 'npm-global'), 0o775);
+    chmodSync(meu, 0o775);
+    expect(validarCaminho(meu, 'claude')).toBeNull();
+  });
+
+  it('segue o atalho (symlink) e confere o arquivo de verdade', () => {
+    const real = executavel(join(raiz, 'versoes', 'claude'));
+    chmodSync(real, 0o777);
+    mkdirSync(join(raiz, 'bin'));
+    symlinkSync(real, join(raiz, 'bin', 'claude'));
+    expect(validarCaminho(join(raiz, 'bin', 'claude'), 'claude')).toMatch(/outros usuários/);
+  });
 });
 
 describe('pastasCandidatas', () => {

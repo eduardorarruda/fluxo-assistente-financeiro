@@ -64,6 +64,34 @@ export function validarCaminho(caminho: string, binario: string): string | null 
   } catch {
     return 'Esse arquivo não tem permissão de execução.';
   }
+  return trocavelPorOutros(caminho);
+}
+
+const ESCRITA_DE_OUTROS = 0o002;
+const ESCRITA_DO_GRUPO = 0o020;
+
+/**
+ * O Fluxo roda o programa como você, com acesso ao extrato pela ponte. Se outro
+ * usuário puder trocar o arquivo (ou a pasta dele), roda o que quiser no seu lugar.
+ * Vale o arquivo de verdade, depois de seguir o atalho: precisa ser seu (ou do
+ * sistema) e nunca gravável por todos. Gravável pelo grupo só passa se o grupo é o
+ * seu grupo principal (o umask 002 das distribuições com grupo por usuário).
+ */
+function trocavelPorOutros(caminho: string): string | null {
+  const recusa = 'Esse programa (ou a pasta dele) pode ser trocado por outros usuários do computador. Use uma instalação sua.';
+  const uid = process.getuid?.();
+  const gid = process.getgid?.();
+  try {
+    const real = realpathSync(caminho);
+    for (const alvo of [real, dirname(real)]) {
+      const info = statSync(alvo);
+      const donoConfiavel = uid === undefined || info.uid === uid || info.uid === 0;
+      const grupoAlheio = (info.mode & ESCRITA_DO_GRUPO) !== 0 && info.gid !== gid;
+      if (!donoConfiavel || (info.mode & ESCRITA_DE_OUTROS) !== 0 || grupoAlheio) return recusa;
+    }
+  } catch {
+    return 'Não consegui conferir esse arquivo. Ele ainda existe?';
+  }
   return null;
 }
 
