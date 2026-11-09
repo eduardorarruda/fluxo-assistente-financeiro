@@ -19,9 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0 # o gitleaks varre o histórico inteiro
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -30,11 +32,27 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
+      - name: Varredura de segredos (histórico inteiro)
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dependências sem CVE alta/crítica (só as que rodam)
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Verificar tipos
         run: npm run typecheck
 
-      - name: Testes (server + web)
-        run: npm test
+      - name: Testes (server + web) com cobertura
+        run: npm run test:cov
 
       - name: Build de produção
         run: npm run build
+
+      - name: SBOM (CycloneDX)
+        run: npm sbom --sbom-format cyclonedx --omit dev > sbom.cdx.json
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: sbom
+          path: sbom.cdx.json
