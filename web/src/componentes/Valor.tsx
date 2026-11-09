@@ -39,8 +39,11 @@ export function Valor({ centavos, formatar = reais, sinal = 'nenhum', className 
   }, [centavos, visivel, reduzir, duracao, formatar, atual]);
 
   const cor = sinal === 'cor' ? (centavos > 0 ? 'valor--positivo' : centavos < 0 ? 'valor--negativo' : '') : '';
+  // A cor nunca é o único sinal (WCAG 1.4.1): positivo ganha "+", negativo já vem com "−" do Intl.
+  const mais = sinal === 'cor' && centavos > 0 ? '+' : '';
   return (
-    <span ref={ref} className={`numero valor-privado ${cor} ${className}`} aria-label={formatar(centavos)}>
+    <span ref={ref} className={`numero valor-privado ${cor} ${className}`} aria-label={`${mais}${formatar(centavos)}`}>
+      {mais}
       {texto}
     </span>
   );

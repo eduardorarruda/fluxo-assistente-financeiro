@@ -20,7 +20,7 @@ async function requisitar<T>(metodo: string, caminho: string, corpo?: unknown): 
   }
   if (resposta.status === 204) return undefined as T;
   const dados = (await resposta.json().catch(() => ({}))) as { erro?: string };
-  if (!resposta.ok) throw new ErroApi(resposta.status, dados.erro ?? `Erro ${resposta.status}`);
+  if (!resposta.ok) throw new ErroApi(resposta.status, dados.erro ?? `O Fluxo não conseguiu concluir isso (erro ${resposta.status}). Tente de novo; se continuar, feche e abra o Fluxo.`);
   return dados as T;
 }
 

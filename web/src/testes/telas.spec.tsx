@@ -1,4 +1,5 @@
 import { screen, waitFor } from '@testing-library/react';
+import axe from 'axe-core';
 import type { ComponentType } from 'react';
 import { Ajustes } from '../paginas/Ajustes';
 import { Assistente } from '../paginas/assistente/Assistente';
@@ -47,6 +48,12 @@ const API = {
   '/api/sincronizacoes': sincronizacoes,
   '/api/assistente/config': configAssistente(),
   '/api/assistente/conversas': [],
+  // Sem Google configurado: a Agenda aparece só com as preferências (é o primeiro uso).
+  '/api/google': {
+    configurado: false, clienteId: null, conectado: false, email: null, agendaId: null, ultimaSincronizacao: null, sincronizando: false,
+    erro: null, precisaReconectar: false, eventos: 0, enderecoDeRetorno: 'http://127.0.0.1:8778/api/google/retorno', contasDisponiveis: true,
+    preferencias: { cartao: true, contas: true, atrasos: true, hora: 9, antecedencias: [2, 1] },
+  },
 };
 
 const TELAS: [string, ComponentType, RegExp][] = [
@@ -72,5 +79,24 @@ describe('todas as telas renderizam com dados reais da API', () => {
     const reais = erro.mock.calls.filter((c) => !String(c[0]).includes('not wrapped in act'));
     expect(reais).toEqual([]);
     erro.mockRestore();
+  });
+});
+
+/**
+ * WCAG 2.2 A/AA com o axe em cada tela. Contraste fica de fora: o jsdom não calcula
+ * cores de verdade (o contraste é conferido nos tokens do tema, não aqui).
+ */
+describe('acessibilidade (axe, WCAG 2.2 AA) em todas as telas', () => {
+  it.each(TELAS)('%s', async (_nome, Tela, marca) => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { container } = renderizar(<Tela />, API);
+    await waitFor(() => expect(screen.getAllByText(marca).length).toBeGreaterThan(0), { timeout: 3000 });
+    const resultado = await axe.run(container, {
+      runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] },
+      rules: { 'color-contrast': { enabled: false } },
+    });
+    const problemas = resultado.violations.map((v) => `${v.id}: ${v.help} → ${v.nodes.map((n) => n.target.join(' ')).slice(0, 3).join(' | ')}`);
+    expect(problemas).toEqual([]);
+    vi.restoreAllMocks();
   });
 });

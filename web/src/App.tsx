@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, MotionConfig } from 'motion/react';
 import { lazy, Suspense, useEffect } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router';
 import { api, ErroApi } from './api/cliente';
@@ -11,6 +11,8 @@ import { Topo } from './componentes/Topo';
 import { LimiteDeErro } from './componentes/LimiteDeErro';
 import { Carregando } from './componentes/ui';
 import { usePreferencias } from './util/preferencias';
+import { tituloDaPagina } from './util/titulo';
+import { NaoEncontrada } from './paginas/NaoEncontrada';
 import { VisaoGeral } from './paginas/VisaoGeral';
 
 // A visão geral vem junto (é a primeira tela); o resto carrega sob demanda.
@@ -98,8 +100,13 @@ export function App() {
   useSinalDeVida();
   useSincronizarAoAbrir(estado.data?.conexoes);
   useAtalhos();
+  useEffect(() => {
+    document.title = tituloDaPagina(local.pathname);
+  }, [local.pathname]);
   if (estado.error instanceof ErroApi && estado.error.status === 401) return <SemSessao />;
   return (
+    // reducedMotion="user": as animações do motion também obedecem ao "menos movimento" do sistema.
+    <MotionConfig reducedMotion="user">
     <div className="app">
       <Fundo />
       <Navegacao />
@@ -131,7 +138,7 @@ export function App() {
                     <Route path="/conexoes" element={<Conexoes />} />
                     <Route path="/ajustes" element={<Ajustes />} />
                     <Route path="/assistente/:conversaId?" element={<Assistente />} />
-                    <Route path="*" element={<VisaoGeral />} />
+                    <Route path="*" element={<NaoEncontrada />} />
                   </Routes>
                 </Suspense>
               </LimiteDeErro>
@@ -140,5 +147,6 @@ export function App() {
         </main>
       </div>
     </div>
+    </MotionConfig>
   );
 }

@@ -201,7 +201,7 @@ function Parcelamentos({ c }: { c: VisaoCartao }) {
                 <span className="linha__titulo">{p.descricao}</span>
                 <span className="numero valor-privado">{reais(p.valorParcela)}<small className="texto-3">/mês</small></span>
               </div>
-              <div className="parcela__pontos" aria-label={`Parcela ${p.parcelaAtual} de ${p.totalParcelas}`}>
+              <div className="parcela__pontos" role="img" aria-label={`Parcela ${p.parcelaAtual} de ${p.totalParcelas}`}>
                 {Array.from({ length: p.totalParcelas }, (_, k) => (
                   <motion.span
                     key={k}

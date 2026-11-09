@@ -97,7 +97,7 @@ export function ListaConversas({ conversaAtiva, aoNova, aoAbrir, aoFechar, agora
       </div>
       <nav className="lista-conversas__rolagem" aria-label="Conversas">
         {isLoading && (
-          <div className="lista-conversas__carregando" aria-label="Carregando conversas">
+          <div className="lista-conversas__carregando" role="status" aria-label="Carregando conversas">
             {[70, 90, 60, 80].map((l) => <Esqueleto key={l} altura={30} largura={`${l}%`} raio={10} />)}
           </div>
         )}
