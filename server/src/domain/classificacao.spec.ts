@@ -300,6 +300,11 @@ describe('Pix no crédito: a cobrança no cartão com par na conta', () => {
     expect(natureza(ms)).toMatchObject({ outroDia: 'DESPESA', menor: 'DESPESA', dobro: 'DESPESA' });
   });
 
+  it('teto de 1,5×: exatamente 1,5× ainda é o Pix no crédito, um centavo acima não', () => {
+    expect(natureza(montar([adicionado('add', 10000), cartao({ id: 'cob', descricao: 'Pagamento de pix', valor: 15000 })]))).toMatchObject({ cob: 'TRANSFERENCIA' });
+    expect(natureza(montar([adicionado('add', 10000), cartao({ id: 'cob', descricao: 'Pagamento de pix', valor: 15001 })]))).toMatchObject({ cob: 'DESPESA' });
+  });
+
   it('cada valor adicionado pareia uma cobrança só — a mais próxima do valor', () => {
     const ms = montar([
       adicionado('add', 10000),

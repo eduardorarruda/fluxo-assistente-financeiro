@@ -94,6 +94,19 @@ describe('transferências entre contas suas: contam quando cruzam a fronteira do
     expect([ms.get('s')?.natureza, ms.get('e')?.natureza]).toEqual(['DESPESA', 'RECEITA']);
   });
 
+  it('limite exato da ida-e-volta: 5 dias ainda se cancela, 6 já conta', () => {
+    const cinco = montar([
+      propria({ id: 's', sentido: 'SAIDA', valor: 200, data: '2026-02-20' }),
+      propria({ id: 'e', sentido: 'ENTRADA', valor: 200, data: '2026-02-25' }),
+    ]);
+    expect([cinco.get('s')?.natureza, cinco.get('e')?.natureza]).toEqual(['TRANSFERENCIA', 'TRANSFERENCIA']);
+    const seis = montar([
+      propria({ id: 's', sentido: 'SAIDA', valor: 200, data: '2026-02-20' }),
+      propria({ id: 'e', sentido: 'ENTRADA', valor: 200, data: '2026-02-26' }),
+    ]);
+    expect([seis.get('s')?.natureza, seis.get('e')?.natureza]).toEqual(['DESPESA', 'RECEITA']);
+  });
+
   it('o Pix no crédito ("Valor adicionado na conta por cartão de crédito") não vira renda', () => {
     const m = montar([propria({ id: 'pix', sentido: 'ENTRADA', descricao: 'Valor adicionado na conta por cartão de crédito', valor: 5000 })]).get('pix');
     expect(m?.natureza).toBe('TRANSFERENCIA');
@@ -162,6 +175,19 @@ describe('transferências entre dois bancos conectados (Nubank ↔ Caixa)', () =
     ]);
     expect(ms.get('sai-nu')?.natureza).toBe('DESPESA');
     expect(ms.get('entra-cx')?.natureza).toBe('RECEITA');
+  });
+
+  it('limite exato entre bancos: 3 dias ainda pareia, 4 não', () => {
+    const tres = montar([
+      nubank({ id: 'sai-nu', sentido: 'SAIDA', valor: 10000, data: '2026-10-01', descricao: 'Transferência enviada pelo Pix|Fulano de Tal' }),
+      caixa({ id: 'entra-cx', sentido: 'ENTRADA', valor: 10000, data: '2026-10-04', descricao: 'PIX RECEBIDO' }),
+    ]);
+    expect([tres.get('sai-nu')?.natureza, tres.get('entra-cx')?.natureza]).toEqual(['TRANSFERENCIA', 'TRANSFERENCIA']);
+    const quatro = montar([
+      nubank({ id: 'sai-nu', sentido: 'SAIDA', valor: 10000, data: '2026-10-01', descricao: 'Transferência enviada pelo Pix|Fulano de Tal' }),
+      caixa({ id: 'entra-cx', sentido: 'ENTRADA', valor: 10000, data: '2026-10-05', descricao: 'PIX RECEBIDO' }),
+    ]);
+    expect([quatro.get('sai-nu')?.natureza, quatro.get('entra-cx')?.natureza]).toEqual(['DESPESA', 'RECEITA']);
   });
 
   it('um para um: dois Pix iguais do Nubank e uma entrada na Caixa deixam um contando', () => {
