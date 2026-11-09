@@ -1,5 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { connect, type AddressInfo } from 'node:net';
 import request from 'supertest';
 import { AppModule } from './app.module';
 import { Sessao } from './http/sessao';
@@ -67,6 +68,47 @@ describe('API do Fluxo (ponta a ponta, SQLite em memória, modo demonstração)'
       expect((await api().get('/api/estado').set('Host', HOST).set('x-fluxo-sessao', 'chute')).status).toBe(401);
       expect((await api().get('/api/estado').set('Host', HOST).set('Cookie', 'fluxo_sessao=chute')).status).toBe(401);
       expect((await api().get('/api/saude').set('Host', HOST)).status).toBe(200);
+    });
+
+    it('trocar maiúsculas ou codificar o caminho não pula a sessão (o Express casa rotas sem diferenciar caixa)', async () => {
+      for (const url of ['/API/estado', '/Api/movimentos', '/api/ESTADO', '/%61pi/estado', '/API/assistente/conversas']) {
+        expect((await api().get(url).set('Host', HOST)).status, url).toBe(401);
+      }
+      const escrita = await api().post('/API/demonstracao').set('Host', HOST).set('X-Fluxo', '1');
+      expect(escrita.status).toBe(401);
+      const ponte = await api().post('/API/assistente/ferramentas/resumo_do_mes').set('Host', HOST).set('X-Fluxo', '1');
+      expect(ponte.status).toBe(401);
+      expect((await api().get('/API/SAUDE').set('Host', HOST)).status).toBe(200);
+    });
+
+    it('exportação: só com sessão, baixa como arquivo e traz os movimentos', async () => {
+      expect((await api().get('/api/exportacao').set('Host', HOST)).status).toBe(401);
+      const r = await api().get('/api/exportacao').set('Host', HOST).set('x-fluxo-sessao', TOKEN);
+      expect(r.status).toBe(200);
+      expect(r.headers['content-disposition']).toMatch(/attachment/);
+      expect(r.headers['cache-control']).toBe('no-store');
+      expect(r.body.formato).toBe('fluxo-exportacao');
+      expect(r.body.tabelas.transacoes.length).toBeGreaterThan(0);
+      expect(JSON.stringify(r.body)).not.toContain(TOKEN);
+    });
+
+    it('pedido em forma absoluta ("GET http://127.0.0.1/api/estado") não pula a sessão', async () => {
+      const servidor = app.getHttpServer().listen(0);
+      const porta = (servidor.address() as AddressInfo).port;
+      const resposta = await new Promise<string>((ok, falha) => {
+        const s = connect(porta, '127.0.0.1', () => s.end(`GET http://${HOST}/api/estado HTTP/1.1\r\nHost: ${HOST}\r\nConnection: close\r\n\r\n`));
+        let dados = '';
+        s.on('data', (d) => (dados += d.toString()));
+        s.on('end', () => ok(dados));
+        s.on('error', falha);
+      });
+      await new Promise((ok) => servidor.close(ok));
+      expect(resposta.split('\r\n')[0]).toMatch(/ 400 /);
+      expect(resposta).not.toContain('"meses"');
+    });
+
+    it('caminho com codificação inválida é recusado antes de chegar às rotas', async () => {
+      expect((await api().get('/api/%E0%A4%A').set('Host', HOST)).status).toBe(400);
     });
 
     it('a entrada pelo atalho troca o código de uso único pelo cookie, e o código não serve duas vezes', async () => {

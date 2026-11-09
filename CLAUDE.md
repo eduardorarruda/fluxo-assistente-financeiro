@@ -49,7 +49,8 @@ npm run build && ./fluxo.sh --servidor        # production path, no window
   via `textoNoExtrato`); a reopened bill's movement is "recusado" and never auto-picked again. Card bills
   are only shown, never stored as contas a pagar.
 - Every `/api` route except `/api/saude` requires the local session (cookie or `x-fluxo-sessao`);
-  writes also need `X-Fluxo: 1`. Keep new routes behind `Seguranca`. Sole session exception:
+  writes also need `X-Fluxo: 1`. Keep new routes behind `Seguranca`, which checks the decoded, lowercased path
+  (Express routing is case-insensitive: `/API/estado` reaches `/api/estado`). Sole session exception:
   `GET /api/google/retorno` (Google's OAuth redirect arrives without the SameSite=Strict cookie), allowed
   only with the `state` of an open connect request — single-use, 10 min, bound to the PKCE verifier.
 - Google Agenda (docs/GOOGLE-AGENDA.md): scope `calendar.app.created` (+ `openid email`) touches only the

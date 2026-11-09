@@ -1,4 +1,4 @@
-import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
 import { CABECALHO_SESSAO, COOKIE_SESSAO, lerCookie, type Sessao } from './sessao';
 
@@ -25,6 +25,23 @@ export const CABECALHO_PONTE = 'x-fluxo-ponte';
  */
 export const ROTA_RETORNO_GOOGLE = '/api/google/retorno';
 
+/**
+ * O caminho como o roteador o enxerga para casar a rota: o Express não diferencia
+ * maiúsculas ("/API/estado" cai em "/api/estado") e um "%61" pode virar "a". Toda
+ * checagem abaixo compara contra esta forma — senão a caixa da URL pulava a sessão.
+ */
+function caminhoNormalizado(url: string): string {
+  // Forma absoluta ("GET http://127.0.0.1/api/estado"): o roteador casa pelo caminho, mas
+  // a URL não começa com "/". Navegador nunca manda isso a um servidor de origem: recusa.
+  if (!url.startsWith('/')) throw new BadRequestException('Endereço inválido.');
+  const cru = url.split('?')[0] ?? '';
+  try {
+    return decodeURIComponent(cru).toLowerCase();
+  } catch {
+    throw new BadRequestException('Endereço inválido.');
+  }
+}
+
 /** O valor de um parâmetro que aparece UMA vez só (repetido, o Express o leria como lista: recusa). */
 function parametro(url: string, nome: string): string | undefined {
   const i = url.indexOf('?');
@@ -50,7 +67,7 @@ export class Seguranca {
 
   use(req: Request, _res: Response, next: NextFunction): void {
     if (!this.hosts.has(req.headers.host ?? '')) throw new ForbiddenException('Host não permitido.');
-    const caminho = req.originalUrl.split('?')[0] ?? '';
+    const caminho = caminhoNormalizado(req.originalUrl);
     const escrita = !['GET', 'HEAD', 'OPTIONS'].includes(req.method);
     if (escrita) {
       const origem = req.headers.origin;
@@ -70,7 +87,8 @@ export class Seguranca {
       next();
       return;
     }
-    if (caminho.startsWith('/api/') && caminho !== '/api/saude') {
+    // Tudo em /api (e o próprio "/api") exige sessão; só a saúde fica aberta.
+    if ((caminho === '/api' || caminho.startsWith('/api/')) && caminho !== '/api/saude') {
       const cabecalho = req.headers[CABECALHO_SESSAO];
       const token = (Array.isArray(cabecalho) ? cabecalho[0] : cabecalho) ?? lerCookie(req.headers.cookie, COOKIE_SESSAO);
       if (!this.sessao.valida(token)) throw new UnauthorizedException('Abra o Fluxo pelo atalho do menu.');
