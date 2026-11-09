@@ -16,7 +16,7 @@ Guia para o uso do dia a dia (uma pessoa, um computador). Complementa o [LEIA-ME
 | Segredo do cliente Google, token de atualização | `data/google/` (0600, pasta 0700) | Agenda | Google (HTTPS) |
 | Chaves de API de IA, chave do Gemini (imagens) | `data/assistente/chaves/`, `chave-gemini` (0600) | Contas por API | O próprio provedor (HTTPS) |
 | Sessão local | `data/.sessao`, `data/.entrada` (0600) | Só quem abre pelo atalho usa a API | Ninguém |
-| Log | `~/.cache/fluxo.log` (`umask 077`) | Diagnóstico | Ninguém |
+| Log | `~/.cache/fluxo/fluxo-AAAA-MM-DD.log`, um por dia (0600, pasta 0700); `~/.cache/fluxo.log` aponta para o de hoje | Diagnóstico | Ninguém |
 | Cópias antes de migrar | `data/copias/` (0600, pasta 0700) | Voltar atrás depois de uma atualização | Ninguém |
 
 Chaves e tokens nunca ficam no banco, numa resposta da API ou no log; as mensagens de erro e os
@@ -32,7 +32,7 @@ portal do titular, DPO nem termos de uso.
 | Movimentos e faturas | Enquanto a conexão existir | Remover a conexão em **Conexões** apaga as contas, os movimentos e as faturas dela (cascata) |
 | Conversas, anexos, imagens, trechos de busca | Até você apagar | Apagar a conversa: some do banco, do índice e da pasta de anexos |
 | Cópias antes de migrar | As 5 mais recentes | Apagar os arquivos em `data/copias/` |
-| Log | Cresce sem rotação | `: > ~/.cache/fluxo.log` com o Fluxo fechado |
+| Log | 90 dias: a cada abertura do Fluxo, os arquivos com mais de 90 dias são apagados (`scripts/rotacionar-log.sh`) | Apagar arquivos em `~/.cache/fluxo/` |
 
 ## 3. Cópias e restauração
 

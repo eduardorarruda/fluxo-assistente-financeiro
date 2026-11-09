@@ -46,6 +46,9 @@ jobs:
       - name: Testes (server + web) com cobertura
         run: npm run test:cov
 
+      - name: Rotação do log (fluxo.sh)
+        run: bash scripts/rotacionar-log.test.sh
+
       - name: Build de produção
         run: npm run build
 

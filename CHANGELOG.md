@@ -24,6 +24,8 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 - `docs/OPERACAO.md` (dados, retenção, cópias, rotinas, incidente) e `docs/DECISOES.md` (ADRs).
 
 ### Corrigido
+- Clique duplo (ou Enter repetido) em "Criar conta" criava duas contas a pagar: o formulário trava depois do primeiro envio e manda uma chave `Idempotency-Key`, e o servidor cria uma só.
+- O log não cresce mais sem fim: um arquivo por dia em `~/.cache/fluxo/`, apagado depois de 90 dias.
 - Total da fatura na ferramenta do Assistente somado em centavos, não em reais com ponto flutuante.
 - Valores positivos ganham "+" além da cor (a cor não é mais o único sinal).
 - As animações do motion respeitam o "menos movimento" do sistema.

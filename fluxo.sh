@@ -13,7 +13,9 @@ umask 077   # banco, sessão e log: só você lê
 PASTA="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PORTA="${FLUXO_PORTA:-8778}"
 ENDERECO="http://127.0.0.1:$PORTA"
-LOG="${XDG_CACHE_HOME:-$HOME/.cache}/fluxo.log"
+CACHE="${XDG_CACHE_HOME:-$HOME/.cache}"
+# Um log por dia em ~/.cache/fluxo/; mais de 90 dias é apagado. ~/.cache/fluxo.log aponta para o de hoje.
+LOG="$("$PASTA/scripts/rotacionar-log.sh" "$CACHE" 2>/dev/null)" || LOG="$CACHE/fluxo.log"
 
 avisar() {
   echo "$1" >&2
