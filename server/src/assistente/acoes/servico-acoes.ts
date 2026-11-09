@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
+import { ocultarSegredos } from '../apis/erros-api';
 import { randomUUID } from 'node:crypto';
 import { ZodError } from 'zod';
 import { Repositorio } from '../../dados/repositorio';
@@ -291,7 +292,7 @@ export class ServicoDeAcoes {
     } catch (e) {
       if (e instanceof Corrida) return this.repo.obter(acao.id) ?? acao;
       const mensagem = e instanceof ErroDeAcao ? e.message : 'Algo deu errado aqui dentro ao fazer a mudança. O detalhe ficou no log do Fluxo.';
-      if (!(e instanceof ErroDeAcao)) this.log.error(`Ação ${acao.tipo} ${acao.id} falhou: ${(e as Error).stack ?? String(e)}`);
+      if (!(e instanceof ErroDeAcao)) this.log.error(`Ação ${acao.tipo} ${acao.id} falhou: ${ocultarSegredos((e as Error).stack ?? String(e), '')}`);
       const falhou: AcaoGravada = { ...acao, situacao: 'falhou', decididaEm: this.agora(), erro: mensagem };
       return this.repo.trocar(acao, falhou) ? falhou : (this.repo.obter(acao.id) ?? falhou);
     }

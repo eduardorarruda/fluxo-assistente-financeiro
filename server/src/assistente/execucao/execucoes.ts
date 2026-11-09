@@ -236,7 +236,7 @@ export class Execucoes implements OnApplicationShutdown {
         resultado = await this.tentar(ex, p, cli, pastaExecucao, null);
       }
     } catch (e) {
-      this.log.error(`Execução ${ex.id} falhou: ${(e as Error).stack ?? String(e)}`);
+      this.log.error(`Execução ${ex.id} falhou: ${ocultarSegredos((e as Error).stack ?? String(e), '')}`);
       ex.erro ??= { codigo: 'desconhecido', mensagem: 'Algo deu errado aqui dentro ao rodar o assistente. O detalhe ficou no log do Fluxo.' };
     } finally {
       rmSync(pastaExecucao, { recursive: true, force: true });

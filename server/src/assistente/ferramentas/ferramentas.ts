@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
+import { ocultarSegredos } from '../apis/erros-api';
 import { z } from 'zod';
 import { Financas } from '../../servicos/financas';
 import { cortar } from '../cli/comum';
@@ -90,7 +91,7 @@ export class Ferramentas {
       return { ok: true, texto: serializar(resultado) };
     } catch (e) {
       if (e instanceof ErroDeFerramenta) return { ok: false, texto: e.message };
-      this.log.error(`Ferramenta ${nome} falhou: ${(e as Error).stack ?? String(e)}`);
+      this.log.error(`Ferramenta ${nome} falhou: ${ocultarSegredos((e as Error).stack ?? String(e), '')}`);
       return { ok: false, texto: 'A ferramenta falhou do lado do Fluxo. Tente outra abordagem.' };
     }
   }

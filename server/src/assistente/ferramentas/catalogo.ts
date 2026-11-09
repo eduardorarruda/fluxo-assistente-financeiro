@@ -285,9 +285,11 @@ function itensDaFatura({ financas }: Dependencias): Definicao {
       const cartao = financas.cartoes().find((c) => c.contaId === e.contaId);
       if (!cartao) throw new ErroDeFerramenta('Cartão não encontrado. Use o contaId devolvido por cartoes_e_faturas.');
       const porId = new Map(financas.todosOsMovimentos().map((m) => [m.id, m]));
-      const itens = financas.itensDaFatura(e.contaId, e.mes).map((m) => movimentoParaAgente(porId.get(m.id) ?? { ...m, conta: cartao.nome }));
-      const total = itens.reduce((s, i) => s + (i.sentido === 'SAIDA' ? i.valor : -i.valor), 0);
-      return { cartao: cartao.nome, mes: e.mes, total: Math.round(total * 100) / 100, itens };
+      const brutos = financas.itensDaFatura(e.contaId, e.mes);
+      const itens = brutos.map((m) => movimentoParaAgente(porId.get(m.id) ?? { ...m, conta: cartao.nome }));
+      // Soma em centavos inteiros e converte uma vez só (somar reais em ponto flutuante acumula erro).
+      const totalCentavos = brutos.reduce((s, m) => s + (m.sentido === 'SAIDA' ? m.valor : -m.valor), 0);
+      return { cartao: cartao.nome, mes: e.mes, total: reais(totalCentavos), itens };
     },
   });
 }

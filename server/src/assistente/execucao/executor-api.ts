@@ -49,6 +49,8 @@ export interface ResultadoApi {
 
 const PREFIXO_FLUXO = 'mcp__fluxo__';
 const MAXIMO_DE_PASSOS = 25;
+/** Teto de texto gerado por passo: protege a chave paga de uma resposta descontrolada. */
+const MAXIMO_DE_TOKENS_DE_SAIDA = 8_000;
 const MENSAGENS_NO_HISTORICO = 20;
 const CARACTERES_POR_MENSAGEM = 4000;
 const TAMANHO_MAXIMO_IMAGEM = 5 * 1024 * 1024;
@@ -81,6 +83,7 @@ export async function executarApi(p: PedidoApi): Promise<ResultadoApi> {
       messages: montarMensagens(p.historico, p.turno, lerImagens(p.imagens, p.aoEvento)),
       tools: p.ferramentas ? montarFerramentas(p.ferramentas, p.conversaId ?? '', deu) : undefined,
       stopWhen: isStepCount(MAXIMO_DE_PASSOS),
+      maxOutputTokens: MAXIMO_DE_TOKENS_DE_SAIDA,
       abortSignal: sinal,
       maxRetries: p.tentativas,
       // A OpenAI guarda as respostas por padrão; aqui vai o extrato da pessoa.
