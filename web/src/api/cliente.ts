@@ -5,13 +5,22 @@ export class ErroApi extends Error {
   }
 }
 
-async function requisitar<T>(metodo: string, caminho: string, corpo?: unknown): Promise<T> {
+/** Opções de escrita. `idempotencia`: a mesma chave em dois pedidos faz a escrita uma vez só (clique duplo). */
+export interface OpcoesEscrita {
+  idempotencia?: string;
+}
+
+async function requisitar<T>(metodo: string, caminho: string, corpo?: unknown, opcoes: OpcoesEscrita = {}): Promise<T> {
   let resposta: Response;
   try {
     resposta = await fetch(`/api${caminho}`, {
       method: metodo,
       // X-Fluxo: o servidor recusa escrita sem ele (obriga o preflight de CORS em qualquer outro site).
-      headers: { 'X-Fluxo': '1', ...(corpo !== undefined ? { 'Content-Type': 'application/json' } : {}) },
+      headers: {
+        'X-Fluxo': '1',
+        ...(corpo !== undefined ? { 'Content-Type': 'application/json' } : {}),
+        ...(opcoes.idempotencia ? { 'Idempotency-Key': opcoes.idempotencia } : {}),
+      },
       body: corpo !== undefined ? JSON.stringify(corpo) : undefined,
       credentials: 'same-origin',
     });
@@ -26,7 +35,7 @@ async function requisitar<T>(metodo: string, caminho: string, corpo?: unknown): 
 
 export const api = {
   get: <T>(caminho: string) => requisitar<T>('GET', caminho),
-  post: <T>(caminho: string, corpo: unknown = {}) => requisitar<T>('POST', caminho, corpo),
+  post: <T>(caminho: string, corpo: unknown = {}, opcoes?: OpcoesEscrita) => requisitar<T>('POST', caminho, corpo, opcoes),
   put: <T>(caminho: string, corpo: unknown) => requisitar<T>('PUT', caminho, corpo),
   patch: <T>(caminho: string, corpo: unknown) => requisitar<T>('PATCH', caminho, corpo),
   delete: <T = void>(caminho: string) => requisitar<T>('DELETE', caminho),

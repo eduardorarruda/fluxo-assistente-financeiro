@@ -1,7 +1,8 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, HttpCode, Param, Patch, Post, Query } from '@nestjs/common';
 import type { z } from 'zod';
 import { ContasAPagar, type ContaAPagar } from '../servicos/contas-a-pagar';
 import { Financas } from '../servicos/financas';
+import { Idempotencia } from './idempotencia';
 import { dadosContaAPagar, filtroContasAPagar, id, pagamentoConta, parcialContaAPagar, Validar } from './validacao';
 
 /** Resumo do movimento que pagou a conta, para a tela mostrar "pago com …". */
@@ -19,7 +20,11 @@ export interface MovimentoDaConta {
  */
 @Controller('api/contas-a-pagar')
 export class ContasAPagarControlador {
-  constructor(private readonly contas: ContasAPagar, private readonly financas: Financas) {}
+  constructor(
+    private readonly contas: ContasAPagar,
+    private readonly financas: Financas,
+    private readonly idempotencia: Idempotencia,
+  ) {}
 
   /** Junta a cada conta o movimento que a pagou (nulo se aberta ou se o banco trocou o id). */
   private comMovimento(contas: ContaAPagar[]): (ContaAPagar & { movimento: MovimentoDaConta | null })[] {
@@ -49,8 +54,10 @@ export class ContasAPagarControlador {
   }
 
   @Post()
-  criar(@Body(new Validar(dadosContaAPagar)) d: z.infer<typeof dadosContaAPagar>) {
-    return this.umaComMovimento(this.contas.criar(d));
+  criar(@Body(new Validar(dadosContaAPagar)) d: z.infer<typeof dadosContaAPagar>, @Headers('idempotency-key') chave?: string) {
+    // Clique duplo no "Criar conta" chega como dois pedidos com a mesma chave: cria uma vez só.
+    const conta = this.idempotencia.umaVez('contas-a-pagar', chave, () => this.contas.criar(d));
+    return this.umaComMovimento(conta);
   }
 
   @Post('conciliar')

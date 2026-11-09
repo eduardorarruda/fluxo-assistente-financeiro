@@ -62,6 +62,23 @@ describe('API de contas a pagar (ponta a ponta, demonstração em 24/09/2026)', 
     expect(lista.map((c) => [c.vencimento, c.situacao])).toEqual([['2026-09-15', 'paga'], ['2026-10-15', 'aberta']]);
   });
 
+  it('clique duplo: o mesmo pedido (mesma chave) cria uma conta só e devolve a mesma', async () => {
+    const criar = () => enviar('post', '/api/contas-a-pagar', { descricao: 'Condomínio', valor: 65000, vencimento: '2026-10-10' }).set('Idempotency-Key', 'form-abc-123');
+    const [a, b] = await Promise.all([criar(), criar()]);
+    expect([a.status, b.status]).toEqual([201, 201]);
+    expect(a.body.id).toBe(b.body.id);
+    const lista = (await get('/api/contas-a-pagar').expect(200)).body as { descricao: string }[];
+    expect(lista.filter((c) => c.descricao === 'Condomínio')).toHaveLength(1);
+    // Outra abertura do formulário (outra chave) cria outra, mesmo com os mesmos dados.
+    const outra = await enviar('post', '/api/contas-a-pagar', { descricao: 'Condomínio', valor: 65000, vencimento: '2026-10-10' }).set('Idempotency-Key', 'form-xyz-456');
+    expect(outra.body.id).not.toBe(a.body.id);
+  });
+
+  it('chave de idempotência malformada é recusada', async () => {
+    const r = await enviar('post', '/api/contas-a-pagar', { descricao: 'X', valor: 100, vencimento: '2026-10-10' }).set('Idempotency-Key', 'tem espaço e é longa demais '.repeat(10));
+    expect(r.status).toBe(400);
+  });
+
   it('criar, editar, pagar à mão, reabrir e remover', async () => {
     const criada = (await enviar('post', '/api/contas-a-pagar', { descricao: 'IPVA', valor: 98000, vencimento: '2026-09-20' }).expect(201)).body;
     expect(criada.situacao).toBe('atrasada');

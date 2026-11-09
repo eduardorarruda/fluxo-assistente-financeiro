@@ -23,10 +23,15 @@ export function movimento(p: Partial<Movimento> = {}): Movimento {
 
 /** Renderiza com os provedores do app e um fetch falso que responde por rota. */
 export function renderizar(ui: ReactNode, respostas: Record<string, unknown> = {}) {
-  const chamadas: { metodo: string; url: string; corpo: unknown }[] = [];
+  const chamadas: { metodo: string; url: string; corpo: unknown; cabecalhos: Record<string, string> }[] = [];
   globalThis.fetch = vi.fn(async (url: string | URL, init?: RequestInit) => {
     const caminho = String(url);
-    chamadas.push({ metodo: init?.method ?? 'GET', url: caminho, corpo: init?.body ? JSON.parse(String(init.body)) : undefined });
+    chamadas.push({
+      metodo: init?.method ?? 'GET',
+      url: caminho,
+      corpo: init?.body ? JSON.parse(String(init.body)) : undefined,
+      cabecalhos: { ...((init?.headers as Record<string, string> | undefined) ?? {}) },
+    });
     const chave = Object.keys(respostas).find((k) => caminho.startsWith(k));
     const corpo = chave ? respostas[chave] : caminho === '/api/categorias' ? CATEGORIAS : {};
     return new Response(JSON.stringify(corpo), { status: 200, headers: { 'Content-Type': 'application/json' } });

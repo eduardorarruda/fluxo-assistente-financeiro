@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { api } from '../../api/cliente';
 import { useCategorias, useEscrita } from '../../api/consultas';
 import type { ContaAPagar, Dia, Repeticao } from '../../api/tipos';
@@ -52,13 +52,21 @@ export function FormularioConta({ conta, hoje, aoFechar }: { conta: ContaEmEdica
   // Cada abertura (ou outra conta) começa do rascunho dela.
   const abrindo = conta !== null && (!aberto || conta !== mostrada);
   if ((conta !== null) !== aberto) setAberto(conta !== null);
+  // Uma chave por abertura: o servidor cria uma conta só mesmo se o pedido chegar duas vezes.
+  const [chave, setChave] = useState(() => crypto.randomUUID());
   if (abrindo) {
     setMostrada(conta);
     setR(rascunhoDe(conta));
+    setChave(crypto.randomUUID());
   }
+  // Trava síncrona por abertura: depois do primeiro envio, um segundo clique (ou Enter) não manda outro
+  // pedido. Só um erro libera, para tentar de novo; a próxima abertura tem outra chave.
+  const enviadaCom = useRef<string | null>(null);
   const editando = mostrada !== null && 'id' in mostrada ? mostrada : null;
   const salvar = useEscrita((corpo: object) =>
-    editando ? api.patch<ContaAPagar>(`/contas-a-pagar/${editando.id}`, corpo) : api.post<ContaAPagar>('/contas-a-pagar', corpo),
+    editando
+      ? api.patch<ContaAPagar>(`/contas-a-pagar/${editando.id}`, corpo)
+      : api.post<ContaAPagar>('/contas-a-pagar', corpo, { idempotencia: chave }),
   );
   const valido = r.descricao.trim().length > 0 && r.valor !== null && r.valor > 0 && Boolean(r.vencimento);
   const opcoesCategoria: OpcaoSeletor[] = [
@@ -67,7 +75,8 @@ export function FormularioConta({ conta, hoje, aoFechar }: { conta: ContaEmEdica
   ];
 
   const enviar = () => {
-    if (!valido) return;
+    if (!valido || enviadaCom.current === chave) return;
+    enviadaCom.current = chave;
     salvar.mutate(
       {
         descricao: r.descricao.trim(),
@@ -85,7 +94,10 @@ export function FormularioConta({ conta, hoje, aoFechar }: { conta: ContaEmEdica
           avisar('sucesso', `${editando ? 'Conta atualizada.' : 'Conta criada.'}${ja}`);
           aoFechar();
         },
-        onError: (e) => avisar('erro', (e as Error).message),
+        onError: (e) => {
+          enviadaCom.current = null;
+          avisar('erro', (e as Error).message);
+        },
       },
     );
   };
@@ -133,7 +145,7 @@ export function FormularioConta({ conta, hoje, aoFechar }: { conta: ContaEmEdica
         <div className="editor__rodape" style={{ position: 'static' }}>
           <span style={{ flex: 1 }} />
           <Botao variante="fantasma" onClick={aoFechar}>Cancelar</Botao>
-          <Botao type="submit" variante="primario" icone="check" disabled={!valido} carregando={salvar.isPending}>
+          <Botao type="submit" variante="primario" icone="check" disabled={!valido || salvar.isPending} carregando={salvar.isPending}>
             {editando ? 'Salvar' : 'Criar conta'}
           </Botao>
         </div>

@@ -32,6 +32,7 @@ import { Financas } from './servicos/financas';
 import { PROVEDOR_PLUGGY, Sincronizador } from './servicos/sincronizador';
 import { ExportacaoControlador } from './http/exportacao.controlador';
 import { Exportador } from './servicos/exportacao';
+import { Idempotencia } from './http/idempotencia';
 
 /**
  * Porta do Vite, só em desenvolvimento: as chamadas dele passam pelo proxy
@@ -108,6 +109,7 @@ function lerConfigSemFalhar(): Config | null {
         config.pluggy ? new ProvedorPluggy(new PluggyClient({ clientId: config.pluggy.clientId, clientSecret: config.pluggy.clientSecret })) : null,
     },
     Exportador,
+    { provide: Idempotencia, useFactory: () => new Idempotencia() },
     { provide: APP_FILTER, useClass: FiltroDeErros },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],

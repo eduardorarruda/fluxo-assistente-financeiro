@@ -85,6 +85,22 @@ describe('Contas a pagar', () => {
     });
   });
 
+  it('clique duplo em "Criar conta" manda um pedido só, com a chave de idempotência', async () => {
+    const usuario = userEvent.setup();
+    const { chamadas } = renderizar(<ContasAPagar />, api([]));
+    await usuario.click(await screen.findByRole('button', { name: 'Cadastrar conta' }));
+    const dialogo = (await screen.findByText('Nova conta a pagar')).closest<HTMLElement>('[role="dialog"]')!;
+    await usuario.type(within(dialogo).getByPlaceholderText('Ex.: Conta de luz'), 'Internet');
+    await usuario.type(within(dialogo).getByRole('textbox', { name: 'Valor' }), '11990');
+    await usuario.click(within(dialogo).getByRole('button', { name: /Vencimento:/ }));
+    await usuario.click(await screen.findByRole('button', { name: 'Próximo mês' }));
+    await usuario.click(await screen.findByRole('button', { name: 'Quinta, 1 de outubro de 2026' }));
+    await usuario.dblClick(within(dialogo).getByRole('button', { name: 'Criar conta' }));
+    const envios = chamadas.filter((c) => c.metodo === 'POST' && c.url === '/api/contas-a-pagar');
+    expect(envios).toHaveLength(1);
+    expect(envios[0]!.cabecalhos['Idempotency-Key']).toMatch(/^[0-9a-f-]{36}$/);
+  });
+
   it('paguei: sugere o débito provável e liga a conta a ele', async () => {
     const usuario = userEvent.setup();
     const { chamadas } = renderizar(<ContasAPagar />, api());
