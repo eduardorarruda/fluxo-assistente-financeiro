@@ -2,6 +2,7 @@ import { ConflictException, Controller, Get, HttpCode, NotFoundException, Param,
 import { id, Validar } from '../../http/validacao';
 import { ServicoDeAcoes } from '../acoes/servico-acoes';
 import { AcaoJaDecidida, AcaoNaoEncontrada, ErroDeAcao, type AcaoAssistente } from '../acoes/tipos-acoes';
+import { LIMITE_DECISOES } from '../../http/limites';
 
 /**
  * As decisões da PESSOA sobre o que o assistente fez ou propôs: aprovar,
@@ -18,18 +19,21 @@ export class AcoesControlador {
     return this.acoes.listar(conversaId);
   }
 
+  @LIMITE_DECISOES
   @Post('propostas/:id/aprovar')
   @HttpCode(200)
   aprovar(@Param('id', new Validar(id)) acaoId: string): AcaoAssistente {
     return traduzir(() => this.acoes.aprovar(acaoId));
   }
 
+  @LIMITE_DECISOES
   @Post('propostas/:id/recusar')
   @HttpCode(200)
   recusar(@Param('id', new Validar(id)) acaoId: string): AcaoAssistente {
     return traduzir(() => this.acoes.recusar(acaoId));
   }
 
+  @LIMITE_DECISOES
   @Post('acoes/:id/desfazer')
   @HttpCode(200)
   desfazer(@Param('id', new Validar(id)) acaoId: string): AcaoAssistente {

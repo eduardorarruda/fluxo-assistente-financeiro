@@ -1,6 +1,7 @@
 import { Controller, Get, Inject, Query, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { COOKIE_SESSAO, Sessao } from './sessao';
+import { LIMITE_ENTRADA } from './limites';
 
 const TRINTA_DIAS_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -13,6 +14,7 @@ const PAGINA_BLOQUEIO = `<!doctype html><html lang="pt-BR"><meta charset="utf-8"
  * A porta de entrada: o atalho do menu abre /entrar?c=<código de uso único>,
  * que vira o cookie da sessão. O código some da barra de endereço no redirect.
  */
+@LIMITE_ENTRADA
 @Controller()
 export class EntradaControlador {
   constructor(@Inject(Sessao) private readonly sessao: Sessao) {}

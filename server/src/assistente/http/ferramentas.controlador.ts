@@ -5,11 +5,13 @@ import { Validar } from '../../http/validacao';
 import { Execucoes } from '../execucao/execucoes';
 import { Ferramentas } from '../ferramentas/ferramentas';
 import { chamadaDeFerramenta, nomeDeFerramenta } from './validacao';
+import { LIMITE_FERRAMENTAS } from '../../http/limites';
 
 /**
  * O que a ponte MCP chama. Autenticado pelo token da execução (não pela
  * sessão — ver `Seguranca`), que diz de qual conversa é a chamada.
  */
+@LIMITE_FERRAMENTAS
 @Controller('api/assistente/ferramentas')
 export class FerramentasControlador {
   constructor(private readonly ferramentas: Ferramentas, private readonly execucoes: Execucoes) {}

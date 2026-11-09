@@ -36,6 +36,16 @@ const CSP = {
   upgradeInsecureRequests: null,
 };
 
+/**
+ * Recursos do navegador: só o microfone (ditado no Assistente) e a área de
+ * transferência, e só para o próprio Fluxo. O resto fica desligado, inclusive
+ * para o iframe da Pluggy.
+ */
+const PERMISSIONS_POLICY = [
+  'microphone=(self)', 'clipboard-write=(self)', 'camera=()', 'geolocation=()', 'payment=()', 'usb=()',
+  'serial=()', 'bluetooth=()', 'hid=()', 'display-capture=()', 'browsing-topics=()', 'interest-cohort=()',
+].join(', ');
+
 async function iniciar(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { logger: ['error', 'warn', 'log'] });
   const config = app.get<Config>(CONFIG);
@@ -43,6 +53,8 @@ async function iniciar(): Promise<void> {
   app.use(
     helmet({
       contentSecurityPolicy: { directives: CSP },
+      // HSTS não se aplica: o Fluxo é http://127.0.0.1 (docs/OPERACAO.md, seção 7).
+      strictTransportSecurity: false,
       crossOriginEmbedderPolicy: false,
       // O login do Meu Pluggy (OAuth) abre uma janela a partir do widget e conversa com
       // ela por window.opener. Com "same-origin" o Chrome corta esse laço na hora e o
@@ -53,6 +65,10 @@ async function iniciar(): Promise<void> {
       referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
     }),
   );
+  app.use((_req: unknown, res: { setHeader(n: string, v: string): void }, next: () => void) => {
+    res.setHeader('Permissions-Policy', PERMISSIONS_POLICY);
+    next();
+  });
   app.useBodyParser('json', { limit: '256kb' });
   app.enableShutdownHooks();
 
