@@ -37,7 +37,7 @@ export const contas = sqliteTable('contas', {
   fechamento: text('fechamento'),
   vencimento: text('vencimento'),
   atualizadaEm: text('atualizada_em').notNull(),
-});
+}, (t) => [index('contas_conexao').on(t.conexaoId)]);
 
 export const caixinhas = sqliteTable('caixinhas', {
   id: text('id').primaryKey(),
@@ -47,7 +47,7 @@ export const caixinhas = sqliteTable('caixinhas', {
   indexador: text('indexador'),
   percentualIndexador: real('percentual_indexador'),
   atualizadaEm: text('atualizada_em').notNull(),
-});
+}, (t) => [index('caixinhas_conta').on(t.contaId)]);
 
 export const investimentos = sqliteTable('investimentos', {
   id: text('id').primaryKey(),
@@ -62,7 +62,7 @@ export const investimentos = sqliteTable('investimentos', {
   taxa: real('taxa'),
   indexador: text('indexador'),
   atualizadaEm: text('atualizada_em').notNull(),
-});
+}, (t) => [index('investimentos_conexao').on(t.conexaoId)]);
 
 export const transacoes = sqliteTable(
   'transacoes',
@@ -104,7 +104,7 @@ export const faturas = sqliteTable('faturas', {
   total: integer('total').notNull(),
   pagamentoMinimo: integer('pagamento_minimo'),
   pago: integer('pago').notNull(),
-});
+}, (t) => [index('faturas_conta').on(t.contaId, t.vencimento)]);
 
 /** Edições manuais. Chave pela transação, com a impressão para sobreviver à troca de id. */
 export const ajustes = sqliteTable('ajustes', {
@@ -221,7 +221,7 @@ export const conversas = sqliteTable(
     criadaEm: text('criada_em').notNull(),
     atualizadaEm: text('atualizada_em').notNull(),
   },
-  (t) => [index('conversas_atualizada').on(t.atualizadaEm)],
+  (t) => [index('conversas_atualizada').on(t.atualizadaEm), index('conversas_conta').on(t.contaId)],
 );
 
 export const mensagens = sqliteTable(
@@ -267,7 +267,7 @@ export const anexos = sqliteTable(
     origem: text('origem', { enum: ['pessoa', 'gerada'] }).notNull().default('pessoa'),
     criadoEm: text('criado_em').notNull(),
   },
-  (t) => [index('anexos_conversa').on(t.conversaId)],
+  (t) => [index('anexos_conversa').on(t.conversaId), index('anexos_mensagem').on(t.mensagemId)],
 );
 
 /**

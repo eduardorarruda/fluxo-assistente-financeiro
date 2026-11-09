@@ -57,6 +57,13 @@
       "when": 1790986347585,
       "tag": "0007_contas_a_pagar",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1794223218136,
+      "tag": "0008_indices_chaves_estrangeiras",
+      "breakpoints": true
     }
   ]
 }

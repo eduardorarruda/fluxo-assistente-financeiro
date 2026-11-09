@@ -3,6 +3,7 @@ import { drizzle, type BetterSQLite3Database } from 'drizzle-orm/better-sqlite3'
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import { chmodSync, existsSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { copiarAntesDeMigrar } from './copia-antes-de-migrar';
 import * as schema from './schema';
 
 export type Banco = BetterSQLite3Database<typeof schema> & { $client: Database.Database };
@@ -29,6 +30,13 @@ export function abrirBanco(caminho: string): Banco {
   cliente.pragma('foreign_keys = ON');
   cliente.pragma('busy_timeout = 5000');
   const banco = drizzle({ client: cliente, schema });
+  // Atualização do Fluxo com mudança de formato: cópia íntegra antes, para poder voltar.
+  try {
+    copiarAntesDeMigrar(cliente, caminho, PASTA_MIGRACOES);
+  } catch (e) {
+    // Sem cópia não migra: melhor não abrir do que mudar o banco sem volta.
+    throw new Error(`Não consegui copiar o banco antes de atualizá-lo (${(e as Error).message}). Libere espaço em disco e abra de novo; nada foi alterado.`);
+  }
   migrate(banco, { migrationsFolder: PASTA_MIGRACOES });
   return banco;
 }
